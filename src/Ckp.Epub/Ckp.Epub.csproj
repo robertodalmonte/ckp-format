@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Ckp.Epub</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />
+    <ProjectReference Include="..\Ckp.IO\Ckp.IO.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="VersOne.Epub" />
+  </ItemGroup>
+</Project>

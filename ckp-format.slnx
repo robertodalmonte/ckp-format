@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/CKP_FORMAT_SPEC.md" />
+    <File Path="docs/PLAN_CODE_TO_CKP_TRANSPILER.md" />
+  </Folder>
+  <Folder Name="/examples/">
+    <File Path="examples/README.md" />
+  </Folder>
+  <Folder Name="/Root/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Ckp.Core/Ckp.Core.csproj" />
+    <Project Path="src/Ckp.IO/Ckp.IO.csproj" />
+    <Project Path="src/Ckp.Signing/Ckp.Signing.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="src/Ckp.Transpiler/Ckp.Transpiler.csproj" />
+    <Project Path="src/Ckp.Epub/Ckp.Epub.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ckp.Tests/Ckp.Tests.csproj" />
+  </Folder>
+</Solution>

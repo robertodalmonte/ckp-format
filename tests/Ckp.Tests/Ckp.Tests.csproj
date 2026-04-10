@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ckp.Core\Ckp.Core.csproj" />
+    <ProjectReference Include="..\..\src\Ckp.IO\Ckp.IO.csproj" />
+    <ProjectReference Include="..\..\src\Ckp.Signing\Ckp.Signing.csproj" />
+    <ProjectReference Include="..\..\src\Ckp.Transpiler\Ckp.Transpiler.csproj" />
+    <ProjectReference Include="..\..\src\Ckp.Epub\Ckp.Epub.csproj" />
+  </ItemGroup>
+</Project>

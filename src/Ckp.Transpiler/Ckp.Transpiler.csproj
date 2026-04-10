@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Ckp.Transpiler</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />
+    <ProjectReference Include="..\Ckp.IO\Ckp.IO.csproj" />
+  </ItemGroup>
+</Project>
