@@ -18,7 +18,7 @@ public sealed record CanonicalClaim(
     string CanonicalId,
     ClaimStatus Status,
     string Statement,
-    string ConsensusTier,
+    Tier ConsensusTier,
     ConfidenceScore Confidence,
     IReadOnlyList<Attestation> Attestations,
     IReadOnlyDictionary<string, string> VocabularyMap,

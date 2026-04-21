@@ -5,7 +5,7 @@ using Ckp.IO;
 
 if (args.Length < 2)
 {
-    Console.Error.WriteLine("Usage: dotnet run -- <book.epub> <output.ckp> --key <key> [options]");
+    Console.Error.WriteLine("Usage: ckp-epub <book.epub> <output.ckp> --key <key> [options]");
     Console.Error.WriteLine();
     Console.Error.WriteLine("  book.epub           Path to the source ePub file");
     Console.Error.WriteLine("  output.ckp          Path for the output .ckp package");
@@ -31,7 +31,6 @@ if (!File.Exists(epubPath))
     return 1;
 }
 
-// Parse named arguments
 string? key = null;
 string? title = null;
 string? authors = null;
@@ -91,12 +90,10 @@ var package = await transpiler.TranspileAsync();
 Console.WriteLine($"  Chapters: {package.Chapters.Count}");
 Console.WriteLine($"  Claims:   {package.Claims.Count}");
 
-// Step 1: write standard CKP package
 var writer = new CkpPackageWriter();
 await using var fileStream = File.Create(outputPath);
 await writer.WriteAsync(package, fileStream);
 
-// Step 2: reopen ZIP to append supplementary chapter text
 fileStream.Seek(0, SeekOrigin.Begin);
 using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Update, leaveOpen: false))
 {

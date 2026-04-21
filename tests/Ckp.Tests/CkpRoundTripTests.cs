@@ -33,7 +33,7 @@ public sealed class CkpRoundTripTests
         roundTripped.Claims.Should().HaveCount(2);
         var first = roundTripped.Claims.First(c => c.Id == "test-1e.ANS.001");
         first.Statement.Should().Be("Baroreceptor activation reduces heart rate.");
-        first.Tier.Should().Be("T1");
+        first.Tier.Should().Be(Tier.T1);
         first.Domain.Should().Be("autonomic-nervous-system");
         first.Hash.Should().StartWith("sha256:");
     }
@@ -127,36 +127,23 @@ public sealed class CkpRoundTripTests
         var claim = roundTripped.Claims.First(c => c.Id == "test-1e.ANS.001");
         claim.TierHistory.Should().HaveCount(2);
         claim.TierHistory[0].Edition.Should().Be(8);
-        claim.TierHistory[0].Tier.Should().Be("T2");
+        claim.TierHistory[0].Tier.Should().Be(Tier.T2);
         claim.TierHistory[1].Edition.Should().Be(10);
-        claim.TierHistory[1].Tier.Should().Be("T1");
+        claim.TierHistory[1].Tier.Should().Be(Tier.T1);
     }
 
     [Fact]
-    public async Task Write_creates_tier_slice_files()
+    public async Task Writing_same_package_twice_produces_byte_identical_archives()
     {
         var package = CreateTestPackage();
+        var ct = TestContext.Current.CancellationToken;
 
-        using var ms = new MemoryStream();
-        await _writer.WriteAsync(package, ms, TestContext.Current.CancellationToken);
-        ms.Position = 0;
+        using var a = new MemoryStream();
+        using var b = new MemoryStream();
+        await _writer.WriteAsync(package, a, ct);
+        await _writer.WriteAsync(package, b, ct);
 
-        using var archive = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Read);
-        archive.GetEntry("claims/by-tier/t1.json").Should().NotBeNull();
-        archive.GetEntry("claims/by-tier/t2.json").Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task Write_creates_domain_slice_files()
-    {
-        var package = CreateTestPackage();
-
-        using var ms = new MemoryStream();
-        await _writer.WriteAsync(package, ms, TestContext.Current.CancellationToken);
-        ms.Position = 0;
-
-        using var archive = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Read);
-        archive.GetEntry("claims/by-domain/autonomic-nervous-system.json").Should().NotBeNull();
+        a.ToArray().Should().BeEquivalentTo(b.ToArray());
     }
 
     [Fact]
@@ -165,7 +152,7 @@ public sealed class CkpRoundTripTests
         var book = new BookMetadata("empty-1e", "Empty Book", 1, ["Nobody"], "None", 2026, null, "en-US", []);
         var fp = new ContentFingerprint("SHA-256", 0, 0, 0, 0, 0, 0, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        var package = new CkpPackage(manifest, [], [], [], [], [], [], [], [], [], [], [], []);
+        var package = new CkpPackage { Manifest = manifest };
 
         var roundTripped = await RoundTripAsync(package);
 
@@ -195,14 +182,14 @@ public sealed class CkpRoundTripTests
         };
         var tierHistory = new List<TierHistoryEntry>
         {
-            new(8, "T2", "Introduced as supported hypothesis"),
-            new(10, "T1", "Promoted after consensus review")
+            new(8, Tier.T2, "Introduced as supported hypothesis"),
+            new(10, Tier.T1, "Promoted after consensus review")
         };
 
         var claim1 = PackageClaim.CreateNew(
             id: "test-1e.ANS.001",
             statement: "Baroreceptor activation reduces heart rate.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "autonomic-nervous-system",
             subDomain: "baroreceptor-reflex",
             chapter: 18,
@@ -218,7 +205,7 @@ public sealed class CkpRoundTripTests
         var claim2 = PackageClaim.CreateNew(
             id: "test-1e.ANS.002",
             statement: "Vagal tone modulates resting heart rate.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "autonomic-nervous-system");
 
         var citations = new List<CitationEntry>
@@ -240,7 +227,7 @@ public sealed class CkpRoundTripTests
 
         var alignment = new BookAlignment("test-1e", "other-2e", [
             new ClaimAlignment("test-1e.ANS.001", "other-2e.MEC.005", AlignmentType.Equivalent,
-                0.88, new TierMismatch("T1", "T2", TierMismatchDirection.SourceAhead),
+                0.88, new TierMismatch(Tier.T1, Tier.T2, TierMismatchDirection.SourceAhead),
                 null, "consilience-auto", null, null)
         ]);
 
@@ -250,6 +237,14 @@ public sealed class CkpRoundTripTests
         var manifest = PackageManifest.CreateNew(book, fp,
             alignments: [new AlignmentSummary("other-2e", null, 1, 1)]);
 
-        return new CkpPackage(manifest, [claim1, claim2], citations, [], [], domains, glossary, [], [alignment], [], [], [], []);
+        return new CkpPackage
+        {
+            Manifest = manifest,
+            Claims = [claim1, claim2],
+            Citations = citations,
+            Domains = domains,
+            Glossary = glossary,
+            Alignments = [alignment],
+        };
     }
 }

@@ -38,12 +38,12 @@ public sealed class CkpExtractionValidatorTests
         var claim = PackageClaim.Restore(
             id: "test-1e.BIO.001",
             statement: "Original statement.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "mechanotransduction",
             subDomain: null, chapter: 1, section: null, pageRange: null,
             keywords: [], meshTerms: [], evidence: [], observables: [],
             sinceEdition: 1,
-            tierHistory: [new TierHistoryEntry(1, "T1", null)],
+            tierHistory: [new TierHistoryEntry(1, Tier.T1, null)],
             hash: "sha256:0000000000000000000000000000000000000000000000000000000000000000");
 
         var package = PackageWith(claim);
@@ -52,32 +52,6 @@ public sealed class CkpExtractionValidatorTests
 
         report.IsValid.Should().BeFalse();
         report.Diagnostics.Should().Contain(d => d.RuleId == "S2");
-    }
-
-    // ── S3: Valid tier ───────────────────────────────────────────────────
-
-    [Fact]
-    public void S3_invalid_tier_is_error()
-    {
-        var package = PackageWith(ClaimWith(tier: "T0"));
-
-        var report = _validator.Validate(package);
-
-        report.Diagnostics.Should().Contain(d => d.RuleId == "S3");
-    }
-
-    [Theory]
-    [InlineData("T1")]
-    [InlineData("T2")]
-    [InlineData("T3")]
-    [InlineData("T4")]
-    public void S3_valid_tiers_pass(string tier)
-    {
-        var package = PackageWith(ClaimWith(tier: tier));
-
-        var report = _validator.Validate(package);
-
-        report.Diagnostics.Should().NotContain(d => d.RuleId == "S3");
     }
 
     // ── S4: ID format ───────────────────────────────────────────────────
@@ -178,7 +152,7 @@ public sealed class CkpExtractionValidatorTests
         var book = TestBook();
         var fp = new ContentFingerprint("SHA-256", 5, 1, 1, 0, 0, 0, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        var package = new CkpPackage(manifest, [claim], [], [], [], [], [], [], [], [], [], [], []);
+        var package = new CkpPackage { Manifest = manifest, Claims = [claim] };
 
         var report = _validator.Validate(package);
 
@@ -190,7 +164,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void PC1_t1_without_citation_is_error_when_priorities_present()
     {
-        var claim = ClaimWith(tier: "T1", evidence: []);
+        var claim = ClaimWith(tier: Tier.T1, evidence: []);
         var package = PackageWith(claim);
         var priorities = new Dictionary<string, ExtractionPriority>
         {
@@ -209,7 +183,7 @@ public sealed class CkpExtractionValidatorTests
         {
             new(EvidenceReferenceType.Citation, "PMID:12345678", EvidenceRelationship.Supports, EvidenceStrength.Primary, null)
         };
-        var claim = ClaimWith(tier: "T1", evidence: evidence);
+        var claim = ClaimWith(tier: Tier.T1, evidence: evidence);
         var package = PackageWith(claim);
         var priorities = new Dictionary<string, ExtractionPriority>
         {
@@ -224,7 +198,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void PC1_not_checked_when_no_priorities()
     {
-        var claim = ClaimWith(tier: "T1", evidence: []);
+        var claim = ClaimWith(tier: Tier.T1, evidence: []);
         var package = PackageWith(claim);
 
         var report = _validator.Validate(package);
@@ -281,7 +255,7 @@ public sealed class CkpExtractionValidatorTests
     [InlineData("The pathway is not yet established in clinical settings.")]
     public void SEM1_hedging_in_t1_claim_is_warning(string statement)
     {
-        var claim = ClaimWith(tier: "T1", statement: statement);
+        var claim = ClaimWith(tier: Tier.T1, statement: statement);
         var package = PackageWith(claim);
 
         var report = _validator.Validate(package);
@@ -293,7 +267,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM1_hedging_in_t2_claim_does_not_fire()
     {
-        var claim = ClaimWith(tier: "T2", statement: "FAK appears to be the mechanoreceptor.");
+        var claim = ClaimWith(tier: Tier.T2, statement: "FAK appears to be the mechanoreceptor.");
         var package = PackageWith(claim);
 
         var report = _validator.Validate(package);
@@ -304,7 +278,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM1_definitive_t1_claim_does_not_fire()
     {
-        var claim = ClaimWith(tier: "T1", statement: "Baroreceptor activation reduces heart rate within one cardiac cycle.");
+        var claim = ClaimWith(tier: Tier.T1, statement: "Baroreceptor activation reduces heart rate within one cardiac cycle.");
         var package = PackageWith(claim);
 
         var report = _validator.Validate(package);
@@ -387,13 +361,13 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM5_stale_tier_history_is_warning()
     {
-        var tierHistory = new List<TierHistoryEntry> { new(3, "T1", "Old edition") };
+        var tierHistory = new List<TierHistoryEntry> { new(3, Tier.T1, "Old edition") };
         var claim = ClaimWith(tierHistory: tierHistory);
         // Book is edition 6 but tier history only goes to edition 3
         var book = new BookMetadata("test-1e", "Test", 6, ["Author"], "Pub", 2026, null, "en-US", []);
         var fp = new ContentFingerprint("SHA-256", 1, 1, 1, 0, 0, 0, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        var package = new CkpPackage(manifest, [claim], [], [], [], [], [], [], [], [], [], [], []);
+        var package = new CkpPackage { Manifest = manifest, Claims = [claim] };
 
         var report = _validator.Validate(package);
 
@@ -405,7 +379,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM6_t3_without_hedging_is_notice()
     {
-        var claim = ClaimWith(tier: "T3",
+        var claim = ClaimWith(tier: Tier.T3,
             statement: "Cranial rhythmic impulse drives cerebrospinal fluid circulation.");
         var package = PackageWith(claim);
 
@@ -418,7 +392,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM6_t4_without_hedging_is_notice()
     {
-        var claim = ClaimWith(tier: "T4",
+        var claim = ClaimWith(tier: Tier.T4,
             statement: "Fascia was identified as connective tissue in the Sushruta Samhita.");
         var package = PackageWith(claim);
 
@@ -431,7 +405,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM6_t3_with_hedging_does_not_fire()
     {
-        var claim = ClaimWith(tier: "T3",
+        var claim = ClaimWith(tier: Tier.T3,
             statement: "The sponge model appears to explain tissue hydration changes during manual therapy.");
         var package = PackageWith(claim);
 
@@ -443,7 +417,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void SEM6_t1_without_hedging_does_not_fire()
     {
-        var claim = ClaimWith(tier: "T1",
+        var claim = ClaimWith(tier: Tier.T1,
             statement: "Baroreceptor activation reduces heart rate within one cardiac cycle.");
         var package = PackageWith(claim);
 
@@ -457,7 +431,7 @@ public sealed class CkpExtractionValidatorTests
     [Fact]
     public void Report_with_only_notices_is_valid()
     {
-        var claim = ClaimWith(tier: "T4",
+        var claim = ClaimWith(tier: Tier.T4,
             statement: "Fascia was identified as connective tissue in the Sushruta Samhita.");
         var package = PackageWith(claim);
 
@@ -481,12 +455,12 @@ public sealed class CkpExtractionValidatorTests
         {
             new("Heart rate decrease", "bpm", "decrease", "<1s", "ECG")
         };
-        var tierHistory = new List<TierHistoryEntry> { new(1, "T1", "Established") };
+        var tierHistory = new List<TierHistoryEntry> { new(1, Tier.T1, "Established") };
 
         var claim = PackageClaim.CreateNew(
             id: "test-1e.BIO.001",
             statement: "Baroreceptor activation reduces heart rate within one cardiac cycle.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "autonomic-nervous-system",
             evidence: evidence,
             observables: observables,
@@ -500,7 +474,7 @@ public sealed class CkpExtractionValidatorTests
         {
             new("PMID:12345678", "Study", "Author", 2020, "Journal", ["test-1e.BIO.001"])
         };
-        var package = new CkpPackage(manifest, [claim], citations, [], [], [], [], [], [], [], [], [], []);
+        var package = new CkpPackage { Manifest = manifest, Claims = [claim], Citations = citations };
 
         var priorities = new Dictionary<string, ExtractionPriority>
         {
@@ -522,7 +496,7 @@ public sealed class CkpExtractionValidatorTests
         var claim = PackageClaim.Restore(
             id: "test-1e.BIO.001",
             statement: "Test claim.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "unknown-domain-xyz",
             subDomain: null, chapter: null, section: null, pageRange: null,
             keywords: [], meshTerms: [], evidence: [], observables: [],
@@ -545,15 +519,15 @@ public sealed class CkpExtractionValidatorTests
         PackageClaim.CreateNew(
             id: id ?? "test-1e.BIO.001",
             statement: statement ?? "Baroreceptor activation reduces heart rate.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "autonomic-nervous-system",
             sinceEdition: 1,
-            tierHistory: [new TierHistoryEntry(1, "T1", null)]);
+            tierHistory: [new TierHistoryEntry(1, Tier.T1, null)]);
 
     private static PackageClaim ClaimWith(
         string? id = null,
         string? statement = null,
-        string? tier = null,
+        Tier? tier = null,
         string? domain = null,
         string? hash = null,
         IReadOnlyList<EvidenceReference>? evidence = null,
@@ -562,11 +536,12 @@ public sealed class CkpExtractionValidatorTests
     {
         string stmt = statement ?? "Test claim statement.";
         string computedHash = hash ?? ComputeHash(stmt);
+        Tier effectiveTier = tier ?? Tier.T1;
 
         return PackageClaim.Restore(
             id: id ?? "test-1e.BIO.001",
             statement: stmt,
-            tier: tier ?? "T1",
+            tier: effectiveTier,
             domain: domain ?? "mechanotransduction",
             subDomain: null,
             chapter: 1,
@@ -577,21 +552,21 @@ public sealed class CkpExtractionValidatorTests
             evidence: evidence ?? [],
             observables: observables ?? [],
             sinceEdition: 1,
-            tierHistory: tierHistory ?? [new TierHistoryEntry(1, tier ?? "T1", null)],
+            tierHistory: tierHistory ?? [new TierHistoryEntry(1, effectiveTier, null)],
             hash: computedHash);
     }
 
     private static CkpPackage PackageWith(params PackageClaim[] claims)
     {
-        int t1 = claims.Count(c => c.Tier == "T1");
-        int t2 = claims.Count(c => c.Tier == "T2");
-        int t3 = claims.Count(c => c.Tier == "T3");
-        int t4 = claims.Count(c => c.Tier == "T4");
+        int t1 = claims.Count(c => c.Tier == Tier.T1);
+        int t2 = claims.Count(c => c.Tier == Tier.T2);
+        int t3 = claims.Count(c => c.Tier == Tier.T3);
+        int t4 = claims.Count(c => c.Tier == Tier.T4);
 
         var book = TestBook();
         var fp = new ContentFingerprint("SHA-256", claims.Length, 1, t1, t2, t3, t4, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        return new CkpPackage(manifest, claims, [], [], [], [], [], [], [], [], [], [], []);
+        return new CkpPackage { Manifest = manifest, Claims = claims };
     }
 
     private static BookMetadata TestBook() =>

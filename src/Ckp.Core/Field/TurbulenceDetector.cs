@@ -25,20 +25,20 @@ public static class TurbulenceDetector
     /// </summary>
     /// <param name="dissentingAttestation">The attestation that disagrees with consensus.</param>
     /// <param name="consensusAttestations">Attestations that form the current consensus.</param>
-    /// <param name="consensusTier">The consensus tier (T1–T4).</param>
+    /// <param name="consensusTier">The consensus tier.</param>
     /// <param name="tauBase">Base threshold ratio. Default 0.7.</param>
     /// <returns>A turbulence flag if threshold is met, null otherwise.</returns>
     public static TurbulenceFlag? Evaluate(
         Attestation dissentingAttestation,
         IReadOnlyList<Attestation> consensusAttestations,
-        string consensusTier,
+        Tier consensusTier,
         double tauBase = DefaultTauBase)
     {
         if (consensusAttestations.Count == 0)
             return null;
 
-        int consensusTierValue = TierToInt(consensusTier);
-        int dissentTierValue = TierToInt(dissentingAttestation.Tier);
+        int consensusTierValue = (int)consensusTier;
+        int dissentTierValue = (int)dissentingAttestation.Tier;
         int tierDelta = Math.Abs(consensusTierValue - dissentTierValue);
 
         if (tierDelta == 0)
@@ -66,13 +66,4 @@ public static class TurbulenceDetector
             Note: $"{dissentingAttestation.BookId} assigns {dissentingAttestation.Tier} " +
                   $"against consensus {consensusTier} (weight ratio {ratio:F2}, threshold {threshold:F2}).");
     }
-
-    private static int TierToInt(string tier) => tier switch
-    {
-        "T1" => 1,
-        "T2" => 2,
-        "T3" => 3,
-        "T4" => 4,
-        _ => throw new ArgumentException($"Invalid tier: {tier}")
-    };
 }

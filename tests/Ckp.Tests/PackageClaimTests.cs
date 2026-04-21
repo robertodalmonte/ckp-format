@@ -10,7 +10,7 @@ public sealed class PackageClaimTests
         var claim = PackageClaim.CreateNew(
             id: "delta-14e.ANS.047",
             statement: "Baroreceptor activation reduces heart rate.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "autonomic-nervous-system");
 
         claim.Hash.Should().StartWith("sha256:");
@@ -23,7 +23,7 @@ public sealed class PackageClaimTests
         var claim = PackageClaim.CreateNew(
             id: "test-1e.PHY.001",
             statement: "Energy is conserved.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "physics",
             subDomain: "thermodynamics",
             chapter: 3,
@@ -33,7 +33,7 @@ public sealed class PackageClaimTests
 
         claim.Id.Should().Be("test-1e.PHY.001");
         claim.Statement.Should().Be("Energy is conserved.");
-        claim.Tier.Should().Be("T1");
+        claim.Tier.Should().Be(Tier.T1);
         claim.Domain.Should().Be("physics");
         claim.SubDomain.Should().Be("thermodynamics");
         claim.Chapter.Should().Be(3);
@@ -48,7 +48,7 @@ public sealed class PackageClaimTests
         var claim = PackageClaim.CreateNew(
             id: "test.001",
             statement: "Test.",
-            tier: "T2",
+            tier: Tier.T2,
             domain: "test");
 
         claim.Keywords.Should().BeEmpty();
@@ -73,7 +73,7 @@ public sealed class PackageClaimTests
         var claim = PackageClaim.CreateNew(
             id: "test.002",
             statement: "Vagal stimulation slows heart.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "autonomic-nervous-system",
             evidence: evidence,
             observables: observables);
@@ -87,8 +87,8 @@ public sealed class PackageClaimTests
     [Fact]
     public void Same_statement_produces_same_hash()
     {
-        var claim1 = PackageClaim.CreateNew(id: "a.001", statement: "Test statement.", tier: "T1", domain: "x");
-        var claim2 = PackageClaim.CreateNew(id: "b.002", statement: "Test statement.", tier: "T2", domain: "y");
+        var claim1 = PackageClaim.CreateNew(id: "a.001", statement: "Test statement.", tier: Tier.T1, domain: "x");
+        var claim2 = PackageClaim.CreateNew(id: "b.002", statement: "Test statement.", tier: Tier.T2, domain: "y");
 
         claim1.Hash.Should().Be(claim2.Hash);
     }
@@ -96,8 +96,8 @@ public sealed class PackageClaimTests
     [Fact]
     public void Different_statement_produces_different_hash()
     {
-        var claim1 = PackageClaim.CreateNew(id: "a.001", statement: "First.", tier: "T1", domain: "x");
-        var claim2 = PackageClaim.CreateNew(id: "a.001", statement: "Second.", tier: "T1", domain: "x");
+        var claim1 = PackageClaim.CreateNew(id: "a.001", statement: "First.", tier: Tier.T1, domain: "x");
+        var claim2 = PackageClaim.CreateNew(id: "a.001", statement: "Second.", tier: Tier.T1, domain: "x");
 
         claim1.Hash.Should().NotBe(claim2.Hash);
     }
@@ -105,13 +105,13 @@ public sealed class PackageClaimTests
     [Fact]
     public void Restore_preserves_all_fields_exactly()
     {
-        var tierHistory = new List<TierHistoryEntry> { new(8, "T2", "Initial") };
+        var tierHistory = new List<TierHistoryEntry> { new(8, Tier.T2, "Initial") };
         string hash = "sha256:abc123";
 
         var claim = PackageClaim.Restore(
             id: "delta-14e.ANS.047",
             statement: "Test.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "ans",
             subDomain: "baroreflex",
             chapter: 18,

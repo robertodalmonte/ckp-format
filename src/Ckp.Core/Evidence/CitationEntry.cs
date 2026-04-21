@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Evidence;
 
 /// <summary>
 /// A bibliographic citation referenced by one or more claims in the package.

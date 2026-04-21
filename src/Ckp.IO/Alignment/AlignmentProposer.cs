@@ -17,37 +17,40 @@ public sealed class AlignmentProposer : IAlignmentProposer
 
     public IReadOnlyList<AlignmentProposal> Propose(CkpPackage source, CkpPackage target)
     {
-        var proposals = new List<AlignmentProposal>();
-        var usedTargets = new HashSet<string>();
-
+        // Score every candidate pair above the threshold, then greedily claim
+        // the highest-scored pairs first — each source and target used at most
+        // once. Unbiased by source/target iteration order.
+        var candidates = new List<AlignmentProposal>();
         foreach (var srcClaim in source.Claims)
         {
-            AlignmentProposal? best = null;
-
             foreach (var tgtClaim in target.Claims)
             {
                 double score = ScorePair(srcClaim, tgtClaim);
                 if (score < MinimumScore) continue;
 
-                bool isContradiction = DetectContradiction(srcClaim, tgtClaim);
-                string canonicalId = ProposeCanonicalId(srcClaim, tgtClaim);
-                string reason = BuildReason(srcClaim, tgtClaim, score);
-
-                var proposal = new AlignmentProposal(
-                    srcClaim.Id, tgtClaim.Id, score, reason, canonicalId, isContradiction);
-
-                if (best is null || proposal.Score > best.Score)
-                    best = proposal;
-            }
-
-            if (best is not null && !usedTargets.Contains(best.TargetClaimId))
-            {
-                proposals.Add(best);
-                usedTargets.Add(best.TargetClaimId);
+                candidates.Add(new AlignmentProposal(
+                    srcClaim.Id, tgtClaim.Id, score,
+                    BuildReason(srcClaim, tgtClaim, score),
+                    ProposeCanonicalId(srcClaim, tgtClaim),
+                    DetectContradiction(srcClaim, tgtClaim)));
             }
         }
 
-        return proposals.OrderByDescending(p => p.Score).ToList();
+        var usedSources = new HashSet<string>();
+        var usedTargets = new HashSet<string>();
+        var proposals = new List<AlignmentProposal>();
+
+        foreach (var proposal in candidates.OrderByDescending(p => p.Score))
+        {
+            if (usedSources.Contains(proposal.SourceClaimId)) continue;
+            if (usedTargets.Contains(proposal.TargetClaimId)) continue;
+
+            proposals.Add(proposal);
+            usedSources.Add(proposal.SourceClaimId);
+            usedTargets.Add(proposal.TargetClaimId);
+        }
+
+        return proposals;
     }
 
     public static double ScorePair(PackageClaim source, PackageClaim target)
@@ -131,9 +134,7 @@ public sealed class AlignmentProposer : IAlignmentProposer
         if (!source.Domain.Equals(target.Domain, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        int srcTier = TierToInt(source.Tier);
-        int tgtTier = TierToInt(target.Tier);
-        return Math.Abs(srcTier - tgtTier) >= 2;
+        return Math.Abs((int)source.Tier - (int)target.Tier) >= 2;
     }
 
     private static string ProposeCanonicalId(PackageClaim source, PackageClaim target)
@@ -166,9 +167,4 @@ public sealed class AlignmentProposer : IAlignmentProposer
     private static HashSet<string> Tokenize(string text) =>
         new(text.Split([' ', '-', '_', '/', '(', ')'], StringSplitOptions.RemoveEmptyEntries),
             StringComparer.OrdinalIgnoreCase);
-
-    private static int TierToInt(string tier) => tier switch
-    {
-        "T1" => 1, "T2" => 2, "T3" => 3, "T4" => 4, _ => 0
-    };
 }

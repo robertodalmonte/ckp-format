@@ -1,5 +1,6 @@
 namespace Ckp.Tests.Field;
 
+using Ckp.Core;
 using Ckp.Core.Field;
 
 public sealed class CanonicalClaimTests
@@ -94,9 +95,9 @@ public sealed class CanonicalClaimTests
         CanonicalId: "ckp:ortho:epidemiology:class-ii-prevalence",
         Status: ClaimStatus.Frontier,
         Statement: "Class II malocclusion affects approximately 15% of the U.S. population.",
-        ConsensusTier: "T1",
+        ConsensusTier: Tier.T1,
         Confidence: new ConfidenceScore(0.67, 1.0, 0.33, 0.0),
-        Attestations: [new Attestation("alpha-3e", "alpha-3e.EPI.001", "T1", 2019, 6, 0.785, null)],
+        Attestations: [new Attestation("alpha-3e", "alpha-3e.EPI.001", Tier.T1, 2019, 6, 1.0, 0.785, null)],
         VocabularyMap: new Dictionary<string, string> { ["alpha-3e"] = "Class II malocclusion" },
         T0Constraints: [],
         Turbulence: null,
@@ -106,12 +107,12 @@ public sealed class CanonicalClaimTests
         CanonicalId: "ckp:ortho:biomech:fak-osteoclast-cascade",
         Status: ClaimStatus.Converged,
         Statement: "Focal adhesion kinase compression in PDL cells triggers PgE2 release and RANKL-mediated osteoclast differentiation.",
-        ConsensusTier: "T2",
+        ConsensusTier: Tier.T2,
         Confidence: new ConfidenceScore(0.82, 2.0, 0.52, 0.18),
         Attestations:
         [
-            new Attestation("alpha-3e", "alpha-3e.BIO.007", "T2", 2019, 6, 0.785, null),
-            new Attestation("beta-2e", "beta-2e.MEC.001", "T1", 2022, 2, 0.848,
+            new Attestation("alpha-3e", "alpha-3e.BIO.007", Tier.T2, 2019, 6, 1.0, 0.785, null),
+            new Attestation("beta-2e", "beta-2e.MEC.001", Tier.T1, 2022, 2, 1.0, 0.848,
                 "same pathway in fascial fibroblasts")
         ],
         VocabularyMap: new Dictionary<string, string>
@@ -127,12 +128,12 @@ public sealed class CanonicalClaimTests
         CanonicalId: "ckp:ortho:biomech:tooth-movement-transduction",
         Status: ClaimStatus.Divergent,
         Statement: "The primary biological control mechanism for orthodontic tooth movement.",
-        ConsensusTier: "T1",
+        ConsensusTier: Tier.T1,
         Confidence: new ConfidenceScore(0.71, 2.0, 0.58, 0.0),
         Attestations:
         [
-            new Attestation("alpha-3e", "alpha-3e.BIO.003", "T1", 2019, 6, 0.785, null),
-            new Attestation("alpha-3e", "alpha-3e.BIO.004", "T2", 2019, 5, 0.74, null)
+            new Attestation("alpha-3e", "alpha-3e.BIO.003", Tier.T1, 2019, 6, 1.0, 0.785, null),
+            new Attestation("alpha-3e", "alpha-3e.BIO.004", Tier.T2, 2019, 5, 1.0, 0.74, null)
         ],
         VocabularyMap: new Dictionary<string, string>
         {
@@ -144,12 +145,12 @@ public sealed class CanonicalClaimTests
         [
             new DivergentBranch(
                 "Chemical messengers from PDL compression are the dominant control mechanism.",
-                "T1",
-                [new Attestation("alpha-3e", "alpha-3e.BIO.003", "T1", 2019, 6, 0.785, null)]),
+                Tier.T1,
+                [new Attestation("alpha-3e", "alpha-3e.BIO.003", Tier.T1, 2019, 6, 1.0, 0.785, null)]),
             new DivergentBranch(
                 "Piezoelectric signals from bone bending are the primary control mechanism.",
-                "T2",
-                [new Attestation("alpha-3e", "alpha-3e.BIO.004", "T2", 2019, 5, 0.74, null)])
+                Tier.T2,
+                [new Attestation("alpha-3e", "alpha-3e.BIO.004", Tier.T2, 2019, 5, 1.0, 0.74, null)])
         ]);
 
     private static FieldPackage CreateFieldPackage() => new(

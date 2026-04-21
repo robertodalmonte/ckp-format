@@ -7,7 +7,7 @@ using Ckp.Core;
 /// and supplementary chapter text — but zero claims. Claims require downstream enrichment
 /// (human annotation or LLM-assisted extraction).
 /// </summary>
-internal sealed class EpubTranspiler
+public sealed class EpubTranspiler
 {
     private readonly string _epubPath;
     private readonly BookMetadataArgs _metadata;
@@ -61,27 +61,19 @@ internal sealed class EpubTranspiler
             Editor: null,
             Note: "Structure extracted from ePub");
 
-        return new CkpPackage(
-            Manifest: manifest,
-            Claims: [],
-            Citations: [],
-            AxiomRefs: [],
-            Chapters: chapterInfos,
-            Domains: [],
-            Glossary: [],
-            Editions: [edition],
-            Alignments: [],
-            Mechanisms: [],
-            Phenomena: [],
-            PublisherCommentary: [],
-            CommunityCommentary: []);
+        return new CkpPackage
+        {
+            Manifest = manifest,
+            Chapters = chapterInfos,
+            Editions = [edition],
+        };
     }
 }
 
 /// <summary>
 /// Book metadata collected from CLI arguments.
 /// </summary>
-internal sealed record BookMetadataArgs(
+public sealed record BookMetadataArgs(
     string Key,
     string Title,
     int Edition,

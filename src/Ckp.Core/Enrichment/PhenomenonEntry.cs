@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Enrichment;
 
 /// <summary>
 /// A named phenomenon clustering related claims across domains.

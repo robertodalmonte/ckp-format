@@ -1,0 +1,22 @@
+[
+  {
+    "id": "tr-001",
+    "claimId": "cl-ans-001",
+    "type": 1,
+    "fromTier": 3,
+    "toTier": 2,
+    "justification": "HRV RCTs promoted.",
+    "evidenceSummary": "3 RCTs",
+    "transitionDate": "2022-03-01"
+  },
+  {
+    "id": "tr-002",
+    "claimId": "cl-ans-001",
+    "type": 1,
+    "fromTier": 2,
+    "toTier": 1,
+    "justification": "Mechanism confirmed.",
+    "evidenceSummary": "meta-analysis",
+    "transitionDate": "2024-06-15"
+  }
+]

@@ -36,7 +36,7 @@ public sealed class EpistemicTierMismatchRule : IExtractionRule
         bool hasHedge = _hedgingPattern.IsMatch(claim.Statement);
 
         // SEM1: Over-promotion — T1 claim with epistemic hedging
-        if (claim.Tier == "T1" && hasHedge)
+        if (claim.Tier == Tier.T1 && hasHedge)
         {
             var match = _hedgingPattern.Match(claim.Statement).Value;
             yield return new ClaimValidationDiagnostic(
@@ -48,7 +48,7 @@ public sealed class EpistemicTierMismatchRule : IExtractionRule
         }
 
         // SEM6: Epistemic rigidity — T3/T4 claim without any hedging
-        if (claim.Tier is "T3" or "T4" && !hasHedge)
+        if (claim.Tier is Tier.T3 or Tier.T4 && !hasHedge)
         {
             yield return new ClaimValidationDiagnostic(
                 "SEM6",

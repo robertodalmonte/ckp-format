@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Evidence;
 
 /// <summary>
 /// Strength classification for an evidence reference within a CKP claim.

@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Alignment;
 
 /// <summary>
 /// Records that two aligned claims have different tier assignments — the richest signal
@@ -9,6 +9,6 @@ namespace Ckp.Core;
 /// <param name="TargetTier">Tier in the target book.</param>
 /// <param name="Direction">Which book considers the claim more established.</param>
 public sealed record TierMismatch(
-    string SourceTier,
-    string TargetTier,
+    Tier SourceTier,
+    Tier TargetTier,
     TierMismatchDirection Direction);

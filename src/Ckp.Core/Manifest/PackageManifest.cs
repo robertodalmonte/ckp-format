@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Manifest;
 
 /// <summary>
 /// Top-level manifest for a .ckp (Consilience Knowledge Package). Contains book metadata,

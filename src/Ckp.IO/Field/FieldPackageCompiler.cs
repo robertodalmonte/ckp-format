@@ -65,7 +65,7 @@ public sealed class FieldPackageCompiler : IFieldPackageCompiler
             var vocabularyMap = BuildVocabularyMap(srcClaim, tgtClaim, srcBook, tgtBook);
             var t0Constraints = CollectT0Constraints(srcClaim, tgtClaim);
             var confidence = ConfidenceScoreCalculator.ComputeScore(
-                attestations, bookAuthorities, currentYear: currentYear);
+                attestations, currentYear: currentYear);
 
             if (proposal.IsContradiction)
             {
@@ -75,7 +75,7 @@ public sealed class FieldPackageCompiler : IFieldPackageCompiler
             }
             else
             {
-                string consensusTier = ComputeConsensusTier(attestations);
+                Tier consensusTier = ComputeConsensusTier(attestations);
                 var turbulence = DetectTurbulence(attestations, consensusTier);
 
                 canonicalClaims.Add(new CanonicalClaim(
@@ -103,7 +103,7 @@ public sealed class FieldPackageCompiler : IFieldPackageCompiler
 
                 var att = BuildAttestation(claim, bookMeta, bookAuthorities, currentYear);
                 var confidence = ConfidenceScoreCalculator.ComputeScore(
-                    [att], bookAuthorities, currentYear: currentYear);
+                    [att], currentYear: currentYear);
 
                 string canonicalId = $"ckp:{fieldId}:{claim.Domain}:{claim.SubDomain ?? "general"}";
 
@@ -161,11 +161,12 @@ public sealed class FieldPackageCompiler : IFieldPackageCompiler
             Tier: claim.Tier,
             PublicationYear: book.Year,
             EditionsSurvived: editionsSurvived,
+            BaseAuthority: baseAuth,
             Weight: weight,
             Note: null);
     }
 
-    private static string ComputeConsensusTier(IReadOnlyList<Attestation> attestations)
+    private static Tier ComputeConsensusTier(IReadOnlyList<Attestation> attestations)
     {
         // Weight-adjusted consensus: tier with highest total weight wins
         var tierWeights = attestations
@@ -178,7 +179,7 @@ public sealed class FieldPackageCompiler : IFieldPackageCompiler
     }
 
     private static TurbulenceFlag? DetectTurbulence(
-        IReadOnlyList<Attestation> attestations, string consensusTier)
+        IReadOnlyList<Attestation> attestations, Tier consensusTier)
     {
         if (attestations.Count < 2) return null;
 

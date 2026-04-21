@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Structure;
 
 /// <summary>
 /// Metadata about a specific edition of the book, stored in history/editions.json.

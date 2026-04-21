@@ -1,0 +1,8 @@
+[
+  {
+    "id": "cn-001",
+    "sourceClaimId": "cl-fas-001",
+    "targetClaimId": "cl-mct-001",
+    "relationship": "mechanism-shares-pathway"
+  }
+]

@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Validation;
 
 /// <summary>
 /// Field-agnostic vocabulary configuration for CKP extraction validation.

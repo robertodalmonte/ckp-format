@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Manifest;
 
 /// <summary>
 /// Ed25519 cryptographic signature block for a .ckp package manifest.

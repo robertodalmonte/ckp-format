@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Enrichment;
 
 /// <summary>
 /// An annotation on a claim by a publisher or community member.

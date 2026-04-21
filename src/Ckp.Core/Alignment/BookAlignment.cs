@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Alignment;
 
 /// <summary>
 /// The full alignment file between two books: a source book, a target book,

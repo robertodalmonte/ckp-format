@@ -1,0 +1,29 @@
+{
+  "claim": {
+    "id": "cl-mct-001",
+    "identifierDomain": 2,
+    "identifierSequence": 1,
+    "statement": "Mechanical compression triggers tooth movement via PDL remodeling.",
+    "tier": 1,
+    "domain": 2,
+    "proposedMechanism": "PDL fibroblast paracrine signaling",
+    "falsificationCriteria": "PDL excision prevents load-induced movement."
+  },
+  "evidence": [
+    {
+      "id": "ev-mct-001",
+      "type": 1,
+      "authors": "Lee, Park",
+      "title": "PDL remodeling under load",
+      "year": 2020,
+      "journal": "Angle Orthod",
+      "pubMedId": "31012345",
+      "keyFindings": "PDL compression increases OPG/RANKL ratio."
+    }
+  ],
+  "signatures": {
+    "observables": ["tooth displacement"],
+    "pathwayTerms": ["OPG", "RANKL"],
+    "predictedMeasurements": ["Altered OPG/RANKL ratio measured by ELISA"]
+  }
+}

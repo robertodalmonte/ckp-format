@@ -7,7 +7,7 @@ using VersOne.Epub;
 /// Extracts chapters from ePub files using the publisher's navigation TOC.
 /// Falls back to reading order when no TOC is present.
 /// </summary>
-internal static partial class EpubExtractor
+public static partial class EpubExtractor
 {
     [GeneratedRegex(@"<[^>]+>", RegexOptions.Compiled)]
     private static partial Regex HtmlTagPattern();

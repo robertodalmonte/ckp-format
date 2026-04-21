@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Validation;
 
 /// <summary>
 /// Maps vocabulary fragments between two aligned claims from different books,

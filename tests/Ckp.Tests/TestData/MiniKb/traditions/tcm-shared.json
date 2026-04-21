@@ -1,0 +1,40 @@
+{
+  "claims": [
+    {
+      "id": "cl-tcm-001",
+      "identifierDomain": 4,
+      "identifierSequence": 1,
+      "statement": "Kidney meridian governs bone vitality and dental eruption.",
+      "tier": 4,
+      "domain": 4,
+      "falsificationCriteria": "No observable correlate found in meridian palpation."
+    },
+    {
+      "id": "cl-tcm-002",
+      "identifierDomain": 4,
+      "identifierSequence": 2,
+      "statement": "Stomach meridian influences upper jaw development.",
+      "tier": 4,
+      "domain": 4,
+      "falsificationCriteria": "Palatal deficits unlinked to stomach meridian activity."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-tcm-001",
+      "type": 3,
+      "authors": "Huang",
+      "title": "TCM meridians and orofacial growth",
+      "year": 2015,
+      "journal": "J Trad Chin Med",
+      "pubMedId": "26012345"
+    }
+  ],
+  "traditionSignatures": {
+    "domain": 4,
+    "name": "TCM",
+    "searchKeywords": ["kidney meridian", "stomach meridian"],
+    "physiologicalTerms": ["bone vitality", "jaw development"],
+    "practiceTerms": ["meridian palpation"]
+  }
+}

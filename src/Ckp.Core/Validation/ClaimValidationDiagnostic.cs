@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Validation;
 
 /// <summary>
 /// A single validation diagnostic produced by the CKP extraction validator.

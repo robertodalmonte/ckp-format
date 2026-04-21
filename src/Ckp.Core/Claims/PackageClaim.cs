@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Claims;
 
 /// <summary>
 /// The atomic unit of the CKP format: a single falsifiable assertion made by a book,
@@ -24,7 +24,7 @@ namespace Ckp.Core;
 public sealed record PackageClaim(
     string Id,
     string Statement,
-    string Tier,
+    Tier Tier,
     string Domain,
     string? SubDomain,
     int? Chapter,

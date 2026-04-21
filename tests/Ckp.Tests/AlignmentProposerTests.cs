@@ -82,13 +82,13 @@ public sealed class AlignmentProposerTests
     public void Large_tier_gap_flags_contradiction()
     {
         var src = MakeClaim("src-1e.BIO.001", "Mechanism X is established.",
-            domain: "mechanotransduction", tier: "T1");
+            domain: "mechanotransduction", tier: Tier.T1);
         var tgt = MakeClaim("tgt-1e.BIO.001", "Mechanism X is speculative.",
-            domain: "mechanotransduction", tier: "T3",
+            domain: "mechanotransduction", tier: Tier.T3,
             meshTerms: ["D040542"]);
         // Give src a shared MeSH to ensure alignment triggers
         var srcWithMesh = MakeClaim("src-1e.BIO.001", "Mechanism X is established.",
-            domain: "mechanotransduction", tier: "T1", meshTerms: ["D040542"]);
+            domain: "mechanotransduction", tier: Tier.T1, meshTerms: ["D040542"]);
 
         var srcPkg = MakePackage("src-1e", srcWithMesh);
         var tgtPkg = MakePackage("tgt-1e", tgt);
@@ -123,14 +123,14 @@ public sealed class AlignmentProposerTests
     private static PackageClaim MakeClaim(
         string id, string statement,
         string domain = "mechanotransduction",
-        string? tier = "T1",
+        Tier tier = Tier.T1,
         IReadOnlyList<string>? meshTerms = null,
         IReadOnlyList<string>? keywords = null,
         IReadOnlyList<Observable>? observables = null) =>
         PackageClaim.CreateNew(
             id: id,
             statement: statement,
-            tier: tier!,
+            tier: tier,
             domain: domain,
             meshTerms: meshTerms,
             keywords: keywords,
@@ -138,13 +138,13 @@ public sealed class AlignmentProposerTests
 
     private static CkpPackage MakePackage(string bookKey, params PackageClaim[] claims)
     {
-        int t1 = claims.Count(c => c.Tier == "T1");
-        int t2 = claims.Count(c => c.Tier == "T2");
-        int t3 = claims.Count(c => c.Tier == "T3");
-        int t4 = claims.Count(c => c.Tier == "T4");
+        int t1 = claims.Count(c => c.Tier == Tier.T1);
+        int t2 = claims.Count(c => c.Tier == Tier.T2);
+        int t3 = claims.Count(c => c.Tier == Tier.T3);
+        int t4 = claims.Count(c => c.Tier == Tier.T4);
         var book = new BookMetadata(bookKey, "Test", 1, ["Author"], "Pub", 2020, null, "en-US", []);
         var fp = new ContentFingerprint("SHA-256", claims.Length, 1, t1, t2, t3, t4, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        return new CkpPackage(manifest, claims, [], [], [], [], [], [], [], [], [], [], []);
+        return new CkpPackage { Manifest = manifest, Claims = claims };
     }
 }

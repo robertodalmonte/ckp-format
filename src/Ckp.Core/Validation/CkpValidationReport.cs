@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Validation;
 
 /// <summary>
 /// Aggregated result of validating a CKP package against the extraction criteria.

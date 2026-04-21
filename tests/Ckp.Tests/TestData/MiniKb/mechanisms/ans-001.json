@@ -1,0 +1,29 @@
+{
+  "claim": {
+    "id": "cl-ans-001",
+    "identifierDomain": 3,
+    "identifierSequence": 1,
+    "statement": "Autonomic balance modulates craniofacial growth via postural tone.",
+    "tier": 1,
+    "domain": 3,
+    "proposedMechanism": "vagal-sympathetic balance shifts masticatory tone",
+    "falsificationCriteria": "HRV manipulation alters growth trajectory."
+  },
+  "evidence": [
+    {
+      "id": "ev-ans-001",
+      "type": 2,
+      "authors": "Nakamura",
+      "title": "ANS and craniofacial growth",
+      "year": 2018,
+      "journal": "Auton Neurosci",
+      "pubMedId": "29012345",
+      "keyFindings": "Sympathetic tone correlates with mandibular growth."
+    }
+  ],
+  "signatures": {
+    "observables": ["HRV", "mandibular length"],
+    "pathwayTerms": ["vagus", "sympathetic"],
+    "predictedMeasurements": ["Decrease in HRV measured by ECG"]
+  }
+}

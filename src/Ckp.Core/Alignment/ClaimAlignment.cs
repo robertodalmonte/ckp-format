@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Alignment;
 
 /// <summary>
 /// Maps a claim in one book to a claim in another — same phenomenon, different vocabulary,

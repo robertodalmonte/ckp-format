@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Validation;
 
 /// <summary>
 /// Extraction priority classification for CKP 1.1 claims. Determines which conditional

@@ -1,7 +1,4 @@
-namespace Ckp.Core;
-
-using System.Security.Cryptography;
-using System.Text;
+namespace Ckp.Core.Claims;
 
 /// <summary>
 /// Factory methods for creating <see cref="PackageClaim"/> instances.
@@ -16,7 +13,7 @@ public static class PackageClaimConstruction
         public static PackageClaim CreateNew(
             string id,
             string statement,
-            string tier,
+            Tier tier,
             string domain,
             string? subDomain = null,
             int? chapter = null,
@@ -42,7 +39,7 @@ public static class PackageClaimConstruction
                 Observables: observables ?? [],
                 SinceEdition: sinceEdition,
                 TierHistory: tierHistory ?? [],
-                Hash: ComputeHash(statement));
+                Hash: CkpHash.OfStatement(statement));
 
         /// <summary>
         /// Restores a <see cref="PackageClaim"/> from serialized data with all fields explicit.
@@ -50,7 +47,7 @@ public static class PackageClaimConstruction
         public static PackageClaim Restore(
             string id,
             string statement,
-            string tier,
+            Tier tier,
             string domain,
             string? subDomain,
             int? chapter,
@@ -78,11 +75,5 @@ public static class PackageClaimConstruction
                 SinceEdition: sinceEdition,
                 TierHistory: tierHistory,
                 Hash: hash);
-    }
-
-    internal static string ComputeHash(string statement)
-    {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(statement));
-        return $"sha256:{Convert.ToHexStringLower(bytes)}";
     }
 }

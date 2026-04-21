@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Structure;
 
 /// <summary>
 /// Maps a book-specific term to its standard equivalent and cross-book synonyms,

@@ -4,9 +4,14 @@ namespace Ckp.Core.Field;
 /// Pure computation of attestation weights and confidence scores using the locked
 /// exponential decay formula with survival bonus.
 /// <para>
-/// Weight = Authority_base × (1 + α·ln(n_editions)) × e^(-λ·(Y_current - Y_pub))
+/// Weight = BaseAuthority × (1 + α·ln(n_editions)) × e^(-λ·(Y_current − Y_pub))
 /// </para>
-/// <para>Defaults: λ = 0.058 (half-life ≈ 12 years), α = 0.1</para>
+/// <para>Defaults: λ = 0.058 (half-life ≈ 12 years), α = 0.1.</para>
+/// <para>
+/// <see cref="ComputeBreakdown"/> is the single source of truth. <see cref="ComputeWeight"/>
+/// and <see cref="ComputeScore"/> both route through it — there is no separate inline
+/// formula anywhere in the codebase.
+/// </para>
 /// </summary>
 public static class ConfidenceScoreCalculator
 {
@@ -17,15 +22,10 @@ public static class ConfidenceScoreCalculator
     public const double DefaultAlpha = 0.1;
 
     /// <summary>
-    /// Computes the weight for a single attestation.
+    /// Computes a full <see cref="WeightBreakdown"/> for one attestation. This is the
+    /// canonical formula — all other helpers delegate here.
     /// </summary>
-    /// <param name="baseAuthority">Base authority of the source book (0.0–1.0).</param>
-    /// <param name="publicationYear">Publication year of the book edition.</param>
-    /// <param name="currentYear">Reference year for decay computation.</param>
-    /// <param name="editionsSurvived">Number of editions the claim has survived (≥1).</param>
-    /// <param name="lambda">Decay rate constant.</param>
-    /// <param name="alpha">Survival bonus scaling factor.</param>
-    public static double ComputeWeight(
+    public static WeightBreakdown ComputeBreakdown(
         double baseAuthority,
         int publicationYear,
         int currentYear,
@@ -33,31 +33,65 @@ public static class ConfidenceScoreCalculator
         double lambda = DefaultLambda,
         double alpha = DefaultAlpha)
     {
-        int age = currentYear - publicationYear;
+        int age = Math.Max(0, currentYear - publicationYear);
+        double decayFactor = Math.Exp(-lambda * age);
         double survivalMultiplier = 1.0 + alpha * Math.Log(Math.Max(1, editionsSurvived));
-        double decayFactor = Math.Exp(-lambda * Math.Max(0, age));
-        return baseAuthority * survivalMultiplier * decayFactor;
+
+        double total = baseAuthority * survivalMultiplier * decayFactor;
+
+        // Decompose: imagine the sequence baseAuthority → baseAuthority·e^(-λ·age) → total.
+        //   decayed       = baseAuthority · decayFactor
+        //   decayPenalty  = baseAuthority − decayed         (≥ 0)
+        //   survivalBonus = total − decayed                 (≥ 0, since multiplier ≥ 1)
+        double decayed = baseAuthority * decayFactor;
+        double decayPenalty = baseAuthority - decayed;
+        double survivalBonus = total - decayed;
+
+        return new WeightBreakdown(total, baseAuthority, decayPenalty, survivalBonus);
     }
 
     /// <summary>
-    /// Computes the aggregate confidence score from a set of attestation weights.
+    /// Computes the scalar weight for a single attestation. Shorthand for
+    /// <c>ComputeBreakdown(...).Total</c>.
     /// </summary>
-    /// <param name="attestations">Attestations with pre-computed weights.</param>
-    /// <param name="baseAuthorities">Base authority per book (keyed by BookId). Defaults to 1.0 if not specified.</param>
-    /// <param name="lambda">Decay rate constant used (stored in the score for audit).</param>
-    /// <param name="alpha">Survival bonus constant used (stored in the score for audit).</param>
-    /// <param name="currentYear">Reference year for decay computation.</param>
+    public static double ComputeWeight(
+        double baseAuthority,
+        int publicationYear,
+        int currentYear,
+        int editionsSurvived,
+        double lambda = DefaultLambda,
+        double alpha = DefaultAlpha) =>
+        ComputeBreakdown(baseAuthority, publicationYear, currentYear,
+            editionsSurvived, lambda, alpha).Total;
+
+    /// <summary>
+    /// Aggregates pre-computed attestation weights into an auditable
+    /// <see cref="ConfidenceScore"/>.
+    /// <para>
+    /// <c>FinalValue</c> is the arithmetic mean of <see cref="Attestation.Weight"/>.
+    /// The decomposition sums are reconstructed from each attestation's self-contained
+    /// inputs (<see cref="Attestation.BaseAuthority"/>, <see cref="Attestation.PublicationYear"/>,
+    /// <see cref="Attestation.EditionsSurvived"/>) using the same <see cref="ComputeBreakdown"/>
+    /// formula that produced the stored weights, so the audit view cannot drift from the
+    /// operational value.
+    /// </para>
+    /// </summary>
+    /// <param name="attestations">Attestations with <see cref="Attestation.Weight"/> populated
+    /// by <see cref="ComputeWeight"/> (typically via the compiler's <c>BuildAttestation</c>).</param>
+    /// <param name="currentYear">Reference year for decomposition. Defaults to UTC now.</param>
+    /// <param name="lambda">Decay rate used for decomposition. Must match what produced the weights.</param>
+    /// <param name="alpha">Survival bonus constant used for decomposition. Must match what produced the weights.</param>
     public static ConfidenceScore ComputeScore(
         IReadOnlyList<Attestation> attestations,
-        IReadOnlyDictionary<string, double>? baseAuthorities = null,
+        int? currentYear = null,
         double lambda = DefaultLambda,
-        double alpha = DefaultAlpha,
-        int? currentYear = null)
+        double alpha = DefaultAlpha)
     {
         if (attestations.Count == 0)
             return new ConfidenceScore(0.0, 0.0, 0.0, 0.0);
 
         int year = currentYear ?? DateTimeOffset.UtcNow.Year;
+
         double totalWeight = 0;
         double totalBaseAuthority = 0;
         double totalDecayPenalty = 0;
@@ -65,25 +99,21 @@ public static class ConfidenceScoreCalculator
 
         foreach (var att in attestations)
         {
-            double baseAuth = baseAuthorities is not null && baseAuthorities.TryGetValue(att.BookId, out var ba)
-                ? ba
-                : 1.0;
+            totalWeight += att.Weight;
 
-            double rawWeight = baseAuth * Math.Exp(-lambda * Math.Max(0, year - att.PublicationYear));
-            double survivalBonus = baseAuth * alpha * Math.Log(Math.Max(1, att.EditionsSurvived))
-                                   * Math.Exp(-lambda * Math.Max(0, year - att.PublicationYear));
-            double fullWeight = rawWeight + survivalBonus;
+            var breakdown = ComputeBreakdown(
+                att.BaseAuthority, att.PublicationYear, year,
+                att.EditionsSurvived, lambda, alpha);
 
-            totalBaseAuthority += baseAuth;
-            totalDecayPenalty += baseAuth - rawWeight;
-            totalSurvivalBonus += survivalBonus;
-            totalWeight += fullWeight;
+            totalBaseAuthority += breakdown.BaseAuthority;
+            totalDecayPenalty += breakdown.DecayPenalty;
+            totalSurvivalBonus += breakdown.SurvivalBonus;
         }
 
-        double normalized = totalWeight / attestations.Count;
+        double finalValue = totalWeight / attestations.Count;
 
         return new ConfidenceScore(
-            FinalValue: normalized,
+            FinalValue: finalValue,
             BaseAuthoritySum: totalBaseAuthority,
             DecayPenalty: totalDecayPenalty,
             SurvivalBonus: totalSurvivalBonus);

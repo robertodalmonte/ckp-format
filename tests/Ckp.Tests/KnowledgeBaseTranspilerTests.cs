@@ -5,41 +5,51 @@ using Ckp.Core;
 using Ckp.IO;
 using Ckp.Transpiler;
 
+/// <summary>
+/// Tests the transpiler against the hand-built MiniKb fixture in
+/// <c>TestData/MiniKb/</c>. The fixture is intentionally small and covers every
+/// transpiler code path (mechanisms, traditions, observations, integrations).
+/// </summary>
+/// <remarks>
+/// Expected MiniKb shape:
+/// <list type="bullet">
+///   <item>3 mechanism claims (FAS, MCT, ANS) — all tier 1</item>
+///   <item>2 tradition claims (TCM) — tier 4, shared evidence, tradition signatures</item>
+///   <item>1 observation claim (OBS) — tier 4</item>
+///   <item>1 bridge (cl-tcm-001 → cl-fas-001), 1 connection (cl-fas-001 → cl-mct-001), 2 transitions on cl-ans-001</item>
+/// </list>
+/// </remarks>
 public sealed class KnowledgeBaseTranspilerTests
 {
-    // Point at the real KnowledgeBase — CI must have the Consilience repo cloned as a sibling.
-    // From bin/Debug/net10.0/ go up 6 levels to the repo parent, then into Consilience.
-    private static readonly string KbPath = Path.GetFullPath(
-        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..",
-            "Consilience", "KnowledgeBase"));
+    private static readonly string KbPath = Path.Combine(
+        AppContext.BaseDirectory, "TestData", "MiniKb");
 
     private static readonly Lazy<Task<CkpPackage>> CachedPackage = new(
         () => new KnowledgeBaseTranspiler(KbPath).TranspileAsync());
 
     private static Task<CkpPackage> GetPackageAsync() => CachedPackage.Value;
 
-    // ── Claim count ──
+    // ── Claim counts ──
 
     [Fact]
-    public async Task Transpiler_produces_47_claims()
+    public async Task Transpiler_produces_6_claims()
     {
         var package = await GetPackageAsync();
-        package.Claims.Should().HaveCount(47);
+        package.Claims.Should().HaveCount(6);
     }
 
     [Fact]
-    public async Task Transpiler_produces_18_mechanism_claims()
+    public async Task Transpiler_produces_3_T1_mechanism_claims()
     {
         var package = await GetPackageAsync();
-        // Mechanism claims are the T1 claims (all mechanisms currently tier 1)
-        package.Claims.Count(c => c.Tier == "T1").Should().Be(18);
+        package.Claims.Count(c => c.Tier == Tier.T1).Should().Be(3);
     }
 
     [Fact]
-    public async Task Transpiler_produces_29_T4_claims()
+    public async Task Transpiler_produces_3_T4_tradition_or_observation_claims()
     {
         var package = await GetPackageAsync();
-        package.Claims.Count(c => c.Tier == "T4").Should().Be(29);
+        package.Claims.Count(c => c.Tier == Tier.T4).Should().Be(3);
     }
 
     // ── Claim ID format ──
@@ -85,9 +95,8 @@ public sealed class KnowledgeBaseTranspilerTests
     public async Task All_tiers_are_valid()
     {
         var package = await GetPackageAsync();
-        var validTiers = new[] { "T1", "T2", "T3", "T4" };
         foreach (var claim in package.Claims)
-            validTiers.Should().Contain(claim.Tier);
+            claim.Tier.Should().BeOneOf(Tier.T1, Tier.T2, Tier.T3, Tier.T4);
     }
 
     // ── Domains ──
@@ -121,10 +130,10 @@ public sealed class KnowledgeBaseTranspilerTests
         foreach (var domain in package.Domains)
         {
             var domainClaims = package.Claims.Where(c => c.Domain == domain.Name).ToList();
-            domain.T1Count.Should().Be(domainClaims.Count(c => c.Tier == "T1"));
-            domain.T2Count.Should().Be(domainClaims.Count(c => c.Tier == "T2"));
-            domain.T3Count.Should().Be(domainClaims.Count(c => c.Tier == "T3"));
-            domain.T4Count.Should().Be(domainClaims.Count(c => c.Tier == "T4"));
+            domain.T1Count.Should().Be(domainClaims.Count(c => c.Tier == Tier.T1));
+            domain.T2Count.Should().Be(domainClaims.Count(c => c.Tier == Tier.T2));
+            domain.T3Count.Should().Be(domainClaims.Count(c => c.Tier == Tier.T3));
+            domain.T4Count.Should().Be(domainClaims.Count(c => c.Tier == Tier.T4));
         }
     }
 
@@ -138,16 +147,16 @@ public sealed class KnowledgeBaseTranspilerTests
         fp.ClaimCount.Should().Be(package.Claims.Count);
         fp.DomainCount.Should().Be(package.Domains.Count);
         fp.CitationCount.Should().Be(package.Citations.Count);
-        fp.T1Count.Should().Be(package.Claims.Count(c => c.Tier == "T1"));
-        fp.T4Count.Should().Be(package.Claims.Count(c => c.Tier == "T4"));
+        fp.T1Count.Should().Be(package.Claims.Count(c => c.Tier == Tier.T1));
+        fp.T4Count.Should().Be(package.Claims.Count(c => c.Tier == Tier.T4));
     }
 
     [Fact]
     public async Task Manifest_book_metadata_is_correct()
     {
         var package = await GetPackageAsync();
-        package.Manifest.Book.Key.Should().Be("consilience-v1");
-        package.Manifest.Book.Title.Should().Be("Consilience Knowledge Base");
+        package.Manifest.Book.Key.Should().Be("minikb-1e");
+        package.Manifest.Book.Title.Should().Be("Mini Test Knowledge Base");
         package.Manifest.Book.Edition.Should().Be(1);
         package.Manifest.Book.Language.Should().Be("en");
         package.Manifest.FormatVersion.Should().Be("1.0");
@@ -160,7 +169,6 @@ public sealed class KnowledgeBaseTranspilerTests
     {
         var package = await GetPackageAsync();
         package.Citations.Should().NotBeEmpty();
-        // Most citations use PMID refs; those without PMIDs fall back to evidence IDs.
         package.Citations.Where(c => c.Ref.StartsWith("PMID:")).Should().NotBeEmpty();
         foreach (var citation in package.Citations)
             citation.Ref.Should().NotBeNullOrWhiteSpace();
@@ -182,7 +190,7 @@ public sealed class KnowledgeBaseTranspilerTests
     public async Task Mechanism_claims_have_citation_evidence()
     {
         var package = await GetPackageAsync();
-        var mechanismClaims = package.Claims.Where(c => c.Tier == "T1");
+        var mechanismClaims = package.Claims.Where(c => c.Tier == Tier.T1);
         foreach (var claim in mechanismClaims)
         {
             claim.Evidence.Where(e => e.Type == EvidenceReferenceType.Citation)
@@ -196,8 +204,7 @@ public sealed class KnowledgeBaseTranspilerTests
     public async Task Claims_with_transitions_have_tier_history()
     {
         var package = await GetPackageAsync();
-        // cl-ans-001 → consilience-v1.ANS.001 has 2 transitions
-        var ansClaim = package.Claims.First(c => c.Id == "consilience-v1.ANS.001");
+        var ansClaim = package.Claims.First(c => c.Id == "minikb-1e.ANS.001");
         ansClaim.TierHistory.Should().HaveCount(2);
     }
 
@@ -207,22 +214,22 @@ public sealed class KnowledgeBaseTranspilerTests
     public async Task Bridge_claims_have_internal_refs()
     {
         var package = await GetPackageAsync();
-        // cl-tcm-001 → consilience-v1.TCM.001 is bridged to cl-fas-001
-        var tcmClaim = package.Claims.First(c => c.Id == "consilience-v1.TCM.001");
+        // cl-tcm-001 → minikb-1e.TCM.001 is bridged to cl-fas-001 (minikb-1e.FAS.001)
+        var tcmClaim = package.Claims.First(c => c.Id == "minikb-1e.TCM.001");
         tcmClaim.Evidence.Should().Contain(e =>
             e.Type == EvidenceReferenceType.InternalRef &&
-            e.Ref == "consilience-v1.FAS.001");
+            e.Ref == "minikb-1e.FAS.001");
     }
 
     [Fact]
     public async Task Connection_claims_have_internal_refs()
     {
         var package = await GetPackageAsync();
-        // cl-fas-001 has connections to cl-mct-001 and cl-ans-001
-        var fasClaim = package.Claims.First(c => c.Id == "consilience-v1.FAS.001");
+        // cl-fas-001 has a connection to cl-mct-001
+        var fasClaim = package.Claims.First(c => c.Id == "minikb-1e.FAS.001");
         fasClaim.Evidence.Should().Contain(e =>
             e.Type == EvidenceReferenceType.InternalRef &&
-            e.Ref == "consilience-v1.MCT.001");
+            e.Ref == "minikb-1e.MCT.001");
     }
 
     // ── Observables ──
@@ -253,7 +260,7 @@ public sealed class KnowledgeBaseTranspilerTests
         roundTripped.Claims.Should().HaveCount(package.Claims.Count);
         roundTripped.Citations.Should().HaveCount(package.Citations.Count);
         roundTripped.Domains.Should().HaveCount(package.Domains.Count);
-        roundTripped.Manifest.Book.Key.Should().Be("consilience-v1");
+        roundTripped.Manifest.Book.Key.Should().Be("minikb-1e");
     }
 
     [Fact]
@@ -290,8 +297,8 @@ public sealed class KnowledgeBaseTranspilerTests
         ms.Position = 0;
         var roundTripped = await reader.ReadAsync(ms, ct);
 
-        var original = package.Claims.First(c => c.Id == "consilience-v1.ANS.001");
-        var restored = roundTripped.Claims.First(c => c.Id == "consilience-v1.ANS.001");
+        var original = package.Claims.First(c => c.Id == "minikb-1e.ANS.001");
+        var restored = roundTripped.Claims.First(c => c.Id == "minikb-1e.ANS.001");
         restored.TierHistory.Should().HaveCount(original.TierHistory.Count);
     }
 }

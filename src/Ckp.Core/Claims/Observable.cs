@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Claims;
 
 /// <summary>
 /// A measurable prediction tied to a CKP claim — what you'd measure to test it.

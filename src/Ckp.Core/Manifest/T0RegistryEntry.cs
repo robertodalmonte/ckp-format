@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Manifest;
 
 /// <summary>
 /// A single entry in the T0 axiom registry. T0 axioms are non-negotiable

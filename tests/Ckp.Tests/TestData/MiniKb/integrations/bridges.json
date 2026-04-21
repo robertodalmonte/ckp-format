@@ -1,0 +1,9 @@
+[
+  {
+    "id": "br-001",
+    "ancientObservationClaimId": "cl-tcm-001",
+    "modernMechanismClaimId": "cl-fas-001",
+    "classicalMechanismSufficient": true,
+    "notes": "Kidney-bone analogy maps to FAK-mediated bone remodeling."
+  }
+]

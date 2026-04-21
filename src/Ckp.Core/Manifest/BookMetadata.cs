@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Manifest;
 
 /// <summary>
 /// Metadata about the book contained in a .ckp package.

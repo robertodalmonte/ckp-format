@@ -3,9 +3,9 @@ using Ckp.Transpiler;
 
 if (args.Length < 2)
 {
-    Console.Error.WriteLine("Usage: dotnet run -- <knowledgebase-path> <output.ckp>");
+    Console.Error.WriteLine("Usage: ckp-transpile <knowledgebase-path> <output.ckp>");
     Console.Error.WriteLine();
-    Console.Error.WriteLine("  knowledgebase-path  Path to the Consilience KnowledgeBase directory");
+    Console.Error.WriteLine("  knowledgebase-path  Path to the KnowledgeBase directory");
     Console.Error.WriteLine("  output.ckp          Path for the output .ckp package");
     return 1;
 }

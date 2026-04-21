@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Structure;
 
 /// <summary>
 /// Chapter index entry for the structure/ directory of a .ckp package.

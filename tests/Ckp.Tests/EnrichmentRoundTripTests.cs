@@ -130,7 +130,13 @@ public sealed class EnrichmentRoundTripTests
         var book = new BookMetadata("test-1e", "Test Book", 1, ["Author"], "Publisher", 2026, null, "en", []);
         var fp = new ContentFingerprint("SHA-256", 0, 0, 0, 0, 0, 0, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        return new CkpPackage(manifest, [], [], [], [], [], [], [], [],
-            mechanisms ?? [], phenomena ?? [], publisherCommentary ?? [], communityCommentary ?? []);
+        return new CkpPackage
+        {
+            Manifest = manifest,
+            Mechanisms = mechanisms ?? [],
+            Phenomena = phenomena ?? [],
+            PublisherCommentary = publisherCommentary ?? [],
+            CommunityCommentary = communityCommentary ?? [],
+        };
     }
 }

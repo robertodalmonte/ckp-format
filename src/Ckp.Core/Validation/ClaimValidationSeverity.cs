@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Validation;
 
 /// <summary>
 /// Severity level for a CKP extraction validation diagnostic. Three-tier triage:

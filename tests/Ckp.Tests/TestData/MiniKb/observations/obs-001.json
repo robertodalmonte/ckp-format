@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "id": "cl-obs-001",
+      "identifierDomain": 5,
+      "identifierSequence": 1,
+      "statement": "Mouth-breathing children show narrower palatal arches.",
+      "tier": 4,
+      "domain": 5,
+      "falsificationCriteria": "No correlation across ethnic cohorts."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-obs-001",
+      "type": 2,
+      "authors": "Harvold",
+      "title": "Mouth-breathing and craniofacial form",
+      "year": 1981,
+      "journal": "Angle Orthod",
+      "pubMedId": "6939912"
+    }
+  ]
+}

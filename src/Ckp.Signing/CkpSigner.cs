@@ -1,14 +1,35 @@
 namespace Ckp.Signing;
 
 using Ckp.Core;
+using Ckp.IO;
 using NSec.Cryptography;
 
 /// <summary>
 /// Ed25519 signing and verification for .ckp package manifests using NSec.Cryptography.
+/// Manifest payloads are canonicalized via <see cref="CkpCanonicalJson"/> before signing
+/// so that re-serialization with different property order / whitespace / null handling
+/// cannot invalidate an otherwise-unchanged manifest.
 /// </summary>
 public sealed class CkpSigner : ICkpSigner
 {
     private static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
+
+    public PackageManifest SignManifest(
+        PackageManifest manifest,
+        ReadOnlySpan<byte> privateKey,
+        SignatureSource source)
+    {
+        byte[] canonical = CkpCanonicalJson.SerializeForSigning(manifest);
+        PackageSignature signature = Sign(canonical, privateKey, source);
+        return manifest with { Signature = signature };
+    }
+
+    public bool VerifyManifest(PackageManifest manifest)
+    {
+        if (manifest.Signature is null) return false;
+        byte[] canonical = CkpCanonicalJson.SerializeForSigning(manifest);
+        return Verify(canonical, manifest.Signature);
+    }
 
     public PackageSignature Sign(ReadOnlySpan<byte> manifestJson, ReadOnlySpan<byte> privateKeyBytes, SignatureSource source)
     {

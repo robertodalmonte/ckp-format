@@ -1,7 +1,5 @@
 namespace Ckp.IO;
 
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using Ckp.Core;
 using Ckp.IO.Rules;
@@ -20,8 +18,6 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
 
     private static readonly Regex IdPattern = new(
         @"^[a-z0-9]+-[a-z0-9]+\.[A-Z]{2,4}\.\d{3}$", RegexOptions.Compiled);
-
-    private static readonly string[] ValidTiers = ["T1", "T2", "T3", "T4"];
 
     private readonly ExtractionVocabulary _vocabulary;
 
@@ -61,19 +57,12 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
             // S2: Hash integrity
             if (HashPattern.IsMatch(claim.Hash))
             {
-                string expected = ComputeHash(claim.Statement);
+                string expected = CkpHash.OfStatement(claim.Statement);
                 if (claim.Hash != expected)
                 {
                     diagnostics.Add(new("S2", ClaimValidationSeverity.Error, claim.Id,
                         $"Hash mismatch: stored '{claim.Hash}' but statement hashes to '{expected}'."));
                 }
-            }
-
-            // S3: Valid tier
-            if (!ValidTiers.Contains(claim.Tier))
-            {
-                diagnostics.Add(new("S3", ClaimValidationSeverity.Error, claim.Id,
-                    $"Invalid tier '{claim.Tier}'. Must be T1, T2, T3, or T4."));
             }
 
             // S4: ID format
@@ -161,10 +150,10 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
                 $"Manifest claims {fingerprint.ClaimCount} claims but package contains {package.Claims.Count}."));
         }
 
-        int actualT1 = package.Claims.Count(c => c.Tier == "T1");
-        int actualT2 = package.Claims.Count(c => c.Tier == "T2");
-        int actualT3 = package.Claims.Count(c => c.Tier == "T3");
-        int actualT4 = package.Claims.Count(c => c.Tier == "T4");
+        int actualT1 = package.Claims.Count(c => c.Tier == Tier.T1);
+        int actualT2 = package.Claims.Count(c => c.Tier == Tier.T2);
+        int actualT3 = package.Claims.Count(c => c.Tier == Tier.T3);
+        int actualT4 = package.Claims.Count(c => c.Tier == Tier.T4);
 
         if (fingerprint.T1Count != actualT1)
             diagnostics.Add(new("SET5", ClaimValidationSeverity.Error, null,
@@ -192,7 +181,7 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
             if (!priorities.TryGetValue(claim.Id, out var priority)) continue;
 
             // PC1: Citation required for T1/T2
-            if (claim.Tier is "T1" or "T2")
+            if (claim.Tier is Tier.T1 or Tier.T2)
             {
                 bool hasCitation = claim.Evidence.Any(e => e.Type == EvidenceReferenceType.Citation);
                 if (!hasCitation)
@@ -245,9 +234,4 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
         }
     }
 
-    private static string ComputeHash(string statement)
-    {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(statement));
-        return $"sha256:{Convert.ToHexStringLower(bytes)}";
-    }
 }

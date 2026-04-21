@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Manifest;
 
 /// <summary>
 /// Factory methods for creating <see cref="PackageManifest"/> instances.

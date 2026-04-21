@@ -15,10 +15,12 @@
     <Project Path="src/Ckp.Core/Ckp.Core.csproj" />
     <Project Path="src/Ckp.IO/Ckp.IO.csproj" />
     <Project Path="src/Ckp.Signing/Ckp.Signing.csproj" />
-  </Folder>
-  <Folder Name="/tools/">
     <Project Path="src/Ckp.Transpiler/Ckp.Transpiler.csproj" />
     <Project Path="src/Ckp.Epub/Ckp.Epub.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="src/Ckp.Transpiler.Cli/Ckp.Transpiler.Cli.csproj" />
+    <Project Path="src/Ckp.Epub.Cli/Ckp.Epub.Cli.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ckp.Tests/Ckp.Tests.csproj" />

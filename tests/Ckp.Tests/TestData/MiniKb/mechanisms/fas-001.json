@@ -1,0 +1,33 @@
+{
+  "claim": {
+    "id": "cl-fas-001",
+    "identifierDomain": 1,
+    "identifierSequence": 1,
+    "statement": "Focal adhesion signaling transduces mechanical load into osteoclast activation.",
+    "tier": 1,
+    "domain": 1,
+    "proposedMechanism": "FAK-Src-Rho cascade",
+    "falsificationCriteria": "FAK knockout abolishes load-induced resorption."
+  },
+  "evidence": [
+    {
+      "id": "ev-fas-001",
+      "type": 1,
+      "authors": "Smith, Chen",
+      "title": "FAK in mechanotransduction",
+      "year": 2019,
+      "journal": "J Bone",
+      "pubMedId": "30012345",
+      "keyFindings": "FAK phosphorylation mediates osteoclast response."
+    }
+  ],
+  "signatures": {
+    "observables": ["FAK phosphorylation", "osteoclast count"],
+    "pathwayTerms": ["FAK", "Src", "RhoA"],
+    "predictedMeasurements": [
+      "Increased osteoclast count measured by TRAP staining",
+      "Decreased trabecular bone volume using microCT"
+    ],
+    "functionalObservables": ["bone resorption rate"]
+  }
+}

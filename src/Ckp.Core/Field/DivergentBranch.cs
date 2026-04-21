@@ -9,5 +9,5 @@ namespace Ckp.Core.Field;
 /// <param name="Attestations">Books that support this position.</param>
 public sealed record DivergentBranch(
     string Position,
-    string Tier,
+    Tier Tier,
     IReadOnlyList<Attestation> Attestations);

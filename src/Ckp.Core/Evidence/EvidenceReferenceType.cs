@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Evidence;
 
 /// <summary>
 /// Type of evidence reference in a CKP claim's evidence array.

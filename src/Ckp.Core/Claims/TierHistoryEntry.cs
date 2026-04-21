@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Claims;
 
 /// <summary>
 /// A record of a claim's tier assignment in a specific edition of the book.
@@ -9,5 +9,5 @@ namespace Ckp.Core;
 /// <param name="Note">Human-readable note explaining the assignment or change.</param>
 public sealed record TierHistoryEntry(
     int Edition,
-    string Tier,
+    Tier Tier,
     string? Note);

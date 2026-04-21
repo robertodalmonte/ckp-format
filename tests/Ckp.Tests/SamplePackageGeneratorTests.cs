@@ -18,7 +18,7 @@ public sealed class SamplePackageGeneratorTests
         var claim1 = PackageClaim.CreateNew(
             id: "biomech-3e.MP.001",
             statement: "Skeletal muscle generates force through actin-myosin cross-bridge cycling, requiring ATP hydrolysis for each power stroke.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "muscle-physiology",
             chapter: 4,
             section: "Cross-Bridge Mechanics",
@@ -44,7 +44,7 @@ public sealed class SamplePackageGeneratorTests
         var claim2 = PackageClaim.CreateNew(
             id: "biomech-3e.BB.001",
             statement: "Wolff's law states that bone remodels along lines of mechanical stress, increasing density in load-bearing regions.",
-            tier: "T1",
+            tier: Tier.T1,
             domain: "bone-biology",
             chapter: 6,
             section: "Adaptive Bone Remodeling",
@@ -67,7 +67,7 @@ public sealed class SamplePackageGeneratorTests
         var claim3 = PackageClaim.CreateNew(
             id: "biomech-3e.CT.001",
             statement: "Fascial tissue exhibits viscoelastic creep under sustained low-load stretching, with time constants between 60 and 300 seconds.",
-            tier: "T2",
+            tier: Tier.T2,
             domain: "connective-tissue",
             chapter: 8,
             section: "Viscoelastic Properties of Fascia",
@@ -85,7 +85,7 @@ public sealed class SamplePackageGeneratorTests
         var claim4 = PackageClaim.CreateNew(
             id: "biomech-3e.MT.001",
             statement: "Interstitial fluid flow through the extracellular matrix may function as a mechanotransduction signaling pathway independent of direct cell-cell contact.",
-            tier: "T3",
+            tier: Tier.T3,
             domain: "mechanotransduction",
             chapter: 10,
             section: "Extracellular Fluid Dynamics",
@@ -97,7 +97,7 @@ public sealed class SamplePackageGeneratorTests
         var claim5 = PackageClaim.CreateNew(
             id: "biomech-3e.BB.002",
             statement: "Traditional martial arts conditioning of the forearm through progressive impact loading increases cortical bone density, consistent with Wolff's law.",
-            tier: "T4",
+            tier: Tier.T4,
             domain: "bone-biology",
             chapter: 12,
             section: "Impact Loading and Bone Adaptation",
@@ -112,8 +112,8 @@ public sealed class SamplePackageGeneratorTests
             sinceEdition: 1,
             tierHistory:
             [
-                new TierHistoryEntry(1, "T3", "Introduced as speculative bridge from traditional practice"),
-                new TierHistoryEntry(3, "T4", "Reclassified as ancient observation after new radiographic evidence supported the practice")
+                new TierHistoryEntry(1, Tier.T3, "Introduced as speculative bridge from traditional practice"),
+                new TierHistoryEntry(3, Tier.T4, "Reclassified as ancient observation after new radiographic evidence supported the practice")
             ]);
 
         var claims = new List<PackageClaim> { claim1, claim2, claim3, claim4, claim5 };
@@ -197,20 +197,15 @@ public sealed class SamplePackageGeneratorTests
 
         // --- Package ---
 
-        var package = new CkpPackage(
-            Manifest: manifest,
-            Claims: claims,
-            Citations: citations,
-            AxiomRefs: [],
-            Chapters: chapters,
-            Domains: domains,
-            Glossary: glossary,
-            Editions: [],
-            Alignments: [],
-            Mechanisms: [],
-            Phenomena: [],
-            PublisherCommentary: [],
-            CommunityCommentary: []);
+        var package = new CkpPackage
+        {
+            Manifest = manifest,
+            Claims = claims,
+            Citations = citations,
+            Chapters = chapters,
+            Domains = domains,
+            Glossary = glossary,
+        };
 
         // --- Write to disk ---
 
@@ -258,7 +253,7 @@ public sealed class SamplePackageGeneratorTests
 
         // T1 muscle claim
         var muscClaim = roundTripped.Claims.First(c => c.Id == "biomech-3e.MP.001");
-        muscClaim.Tier.Should().Be("T1");
+        muscClaim.Tier.Should().Be(Tier.T1);
         muscClaim.Domain.Should().Be("muscle-physiology");
         muscClaim.Chapter.Should().Be(4);
         muscClaim.Evidence.Should().HaveCount(2);
@@ -268,30 +263,30 @@ public sealed class SamplePackageGeneratorTests
 
         // T1 bone claim
         var boneClaim = roundTripped.Claims.First(c => c.Id == "biomech-3e.BB.001");
-        boneClaim.Tier.Should().Be("T1");
+        boneClaim.Tier.Should().Be(Tier.T1);
         boneClaim.Evidence.Should().HaveCount(1);
         boneClaim.Observables.Should().HaveCount(1);
         boneClaim.Observables[0].Unit.Should().Be("g/cm\u00b2");
 
         // T2 fascia claim
         var fasciaClaim = roundTripped.Claims.First(c => c.Id == "biomech-3e.CT.001");
-        fasciaClaim.Tier.Should().Be("T2");
+        fasciaClaim.Tier.Should().Be(Tier.T2);
         fasciaClaim.Domain.Should().Be("connective-tissue");
         fasciaClaim.Evidence.Should().HaveCount(1);
 
         // T3 mechanotransduction claim
         var mechClaim = roundTripped.Claims.First(c => c.Id == "biomech-3e.MT.001");
-        mechClaim.Tier.Should().Be("T3");
+        mechClaim.Tier.Should().Be(Tier.T3);
         mechClaim.Evidence.Should().BeEmpty();
 
         // T4 martial arts claim with tier history
         var martialClaim = roundTripped.Claims.First(c => c.Id == "biomech-3e.BB.002");
-        martialClaim.Tier.Should().Be("T4");
+        martialClaim.Tier.Should().Be(Tier.T4);
         martialClaim.TierHistory.Should().HaveCount(2);
         martialClaim.TierHistory[0].Edition.Should().Be(1);
-        martialClaim.TierHistory[0].Tier.Should().Be("T3");
+        martialClaim.TierHistory[0].Tier.Should().Be(Tier.T3);
         martialClaim.TierHistory[1].Edition.Should().Be(3);
-        martialClaim.TierHistory[1].Tier.Should().Be("T4");
+        martialClaim.TierHistory[1].Tier.Should().Be(Tier.T4);
         martialClaim.Evidence.Should().HaveCount(1);
         martialClaim.Evidence[0].Type.Should().Be(EvidenceReferenceType.InternalRef);
         martialClaim.Evidence[0].Ref.Should().Be("biomech-3e.BB.001");

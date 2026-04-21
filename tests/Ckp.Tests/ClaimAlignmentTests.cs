@@ -7,7 +7,7 @@ public sealed class ClaimAlignmentTests
     [Fact]
     public void Equivalent_alignment_with_tier_mismatch()
     {
-        var mismatch = new TierMismatch("T1", "T2", TierMismatchDirection.SourceAhead);
+        var mismatch = new TierMismatch(Tier.T1, Tier.T2, TierMismatchDirection.SourceAhead);
         var bridge = new VocabularyBridge(
             SourceTerms: ["baroreceptor stretch"],
             TargetTerms: ["fascial mechanoreceptor"],
@@ -75,7 +75,7 @@ public sealed class ClaimAlignmentTests
             TargetClaim: "b.001",
             Type: AlignmentType.Contradictory,
             Confidence: 0.72,
-            Mismatch: new TierMismatch("T1", "T3", TierMismatchDirection.SourceAhead),
+            Mismatch: new TierMismatch(Tier.T1, Tier.T3, TierMismatchDirection.SourceAhead),
             Bridge: null,
             AlignedBy: "manual",
             ReviewedBy: "expert-1",

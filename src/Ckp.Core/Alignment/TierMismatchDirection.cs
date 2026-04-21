@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Alignment;
 
 /// <summary>
 /// Direction of a tier mismatch between aligned claims in two books.

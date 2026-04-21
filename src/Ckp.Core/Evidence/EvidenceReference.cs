@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Evidence;
 
 /// <summary>
 /// A reference to evidence supporting, contradicting, or constraining a CKP claim.

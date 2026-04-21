@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Evidence;
 
 /// <summary>
 /// How an evidence reference relates to the claim it is attached to.

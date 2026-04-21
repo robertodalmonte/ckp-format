@@ -40,20 +40,22 @@ public sealed class CkpPackageReader : ICkpPackageReader
             }
         }
 
-        return new CkpPackage(
-            Manifest: manifest,
-            Claims: claims,
-            Citations: citations,
-            AxiomRefs: axiomRefs,
-            Chapters: chapters,
-            Domains: domains,
-            Glossary: glossary,
-            Editions: editions,
-            Alignments: alignments,
-            Mechanisms: mechanisms,
-            Phenomena: phenomena,
-            PublisherCommentary: publisherCommentary,
-            CommunityCommentary: communityCommentary);
+        return new CkpPackage
+        {
+            Manifest = manifest,
+            Claims = claims,
+            Citations = citations,
+            AxiomRefs = axiomRefs,
+            Chapters = chapters,
+            Domains = domains,
+            Glossary = glossary,
+            Editions = editions,
+            Alignments = alignments,
+            Mechanisms = mechanisms,
+            Phenomena = phenomena,
+            PublisherCommentary = publisherCommentary,
+            CommunityCommentary = communityCommentary,
+        };
     }
 
     private static async Task<T> ReadRequiredEntryAsync<T>(

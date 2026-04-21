@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Manifest;
 
 /// <summary>
 /// Trust tier of the entity that signed a .ckp package, parallel to ALiveBook's ContributorType.

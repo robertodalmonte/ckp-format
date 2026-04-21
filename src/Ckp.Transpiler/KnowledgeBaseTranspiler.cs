@@ -8,7 +8,7 @@ using System.Text.Json;
 /// Domain-agnostic — works with any KnowledgeBase regardless of topic.
 /// Requires a package.json metadata file in the KnowledgeBase root.
 /// </summary>
-internal sealed class KnowledgeBaseTranspiler
+public sealed class KnowledgeBaseTranspiler
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -17,12 +17,12 @@ internal sealed class KnowledgeBaseTranspiler
 
     private readonly string _kbPath;
 
-    internal KnowledgeBaseTranspiler(string knowledgeBasePath)
+    public KnowledgeBaseTranspiler(string knowledgeBasePath)
     {
         _kbPath = knowledgeBasePath;
     }
 
-    internal async Task<CkpPackage> TranspileAsync(CancellationToken ct = default)
+    public async Task<CkpPackage> TranspileAsync(CancellationToken ct = default)
     {
         // 0. Read package metadata
         var metadata = await ReadMetadataAsync(ct);
@@ -88,10 +88,10 @@ internal sealed class KnowledgeBaseTranspiler
             .Select(g => new DomainInfo(
                 Name: g.Key,
                 ClaimCount: g.Count(),
-                T1Count: g.Count(c => c.Tier == "T1"),
-                T2Count: g.Count(c => c.Tier == "T2"),
-                T3Count: g.Count(c => c.Tier == "T3"),
-                T4Count: g.Count(c => c.Tier == "T4")))
+                T1Count: g.Count(c => c.Tier == Tier.T1),
+                T2Count: g.Count(c => c.Tier == Tier.T2),
+                T3Count: g.Count(c => c.Tier == Tier.T3),
+                T4Count: g.Count(c => c.Tier == Tier.T4)))
             .OrderBy(d => d.Name)
             .ToList();
 
@@ -111,10 +111,10 @@ internal sealed class KnowledgeBaseTranspiler
             Algorithm: "SHA-256",
             ClaimCount: packageClaims.Count,
             DomainCount: domains.Count,
-            T1Count: packageClaims.Count(c => c.Tier == "T1"),
-            T2Count: packageClaims.Count(c => c.Tier == "T2"),
-            T3Count: packageClaims.Count(c => c.Tier == "T3"),
-            T4Count: packageClaims.Count(c => c.Tier == "T4"),
+            T1Count: packageClaims.Count(c => c.Tier == Tier.T1),
+            T2Count: packageClaims.Count(c => c.Tier == Tier.T2),
+            T3Count: packageClaims.Count(c => c.Tier == Tier.T3),
+            T4Count: packageClaims.Count(c => c.Tier == Tier.T4),
             CitationCount: citations.Count);
 
         var manifest = PackageManifest.CreateNew(book, fingerprint);
@@ -126,23 +126,15 @@ internal sealed class KnowledgeBaseTranspiler
             Editor: string.Join(", ", metadata.Authors),
             Note: null);
 
-        // 8. Build enrichment from mechanism signatures
-        var mechanisms = BuildMechanisms(allClaims, metadata);
-
-        return new CkpPackage(
-            Manifest: manifest,
-            Claims: packageClaims,
-            Citations: citations,
-            AxiomRefs: [],
-            Chapters: [],
-            Domains: domains,
-            Glossary: [],
-            Editions: [edition],
-            Alignments: [],
-            Mechanisms: mechanisms,
-            Phenomena: [],
-            PublisherCommentary: [],
-            CommunityCommentary: []);
+        // TODO: multi-claim mechanism grouping — currently no mechanisms are emitted.
+        return new CkpPackage
+        {
+            Manifest = manifest,
+            Claims = packageClaims,
+            Citations = citations,
+            Domains = domains,
+            Editions = [edition],
+        };
     }
 
     private PackageClaim MapClaim(
@@ -158,7 +150,7 @@ internal sealed class KnowledgeBaseTranspiler
         string ckpId = DomainRegistry.ToCkpClaimId(kbClaim.Id, metadata.Key);
         string domainCode = DomainRegistry.ExtractDomainCode(kbClaim.Id);
         string domainName = DomainRegistry.ToDomainName(domainCode);
-        string tier = $"T{kbClaim.Tier}";
+        Tier tier = (Tier)kbClaim.Tier;
 
         // Evidence references from citations
         var evidenceRefs = evidenceList
@@ -211,7 +203,7 @@ internal sealed class KnowledgeBaseTranspiler
             {
                 tierHistory.Add(new TierHistoryEntry(
                     Edition: metadata.Edition,
-                    Tier: $"T{t.ToTier}",
+                    Tier: (Tier)t.ToTier,
                     Note: $"[{t.TransitionDate}] {t.Justification}"));
             }
         }
@@ -275,7 +267,7 @@ internal sealed class KnowledgeBaseTranspiler
     /// Extracts direction (Increased/Decreased/change), measurement name,
     /// and instrument (if "measured by" / "using" pattern found).
     /// </summary>
-    internal static Observable ParsePredictedMeasurement(string text)
+    public static Observable ParsePredictedMeasurement(string text)
     {
         string direction = "expected";
         string measurement = text;
@@ -331,17 +323,6 @@ internal sealed class KnowledgeBaseTranspiler
             Direction: direction,
             Latency: null,
             Instrument: instrument);
-    }
-
-    private static List<MechanismEntry> BuildMechanisms(
-        List<(KbClaim claim, List<KbEvidence> evidence)> allClaims,
-        KbPackageMetadata metadata)
-    {
-        // Read mechanism files have signatures with pathway terms and predicted measurements.
-        // We don't have the MechanismFile in scope here — signatures are per-claim,
-        // so mechanisms are built from the claim + signature pairing during ReadAllSourcesAsync.
-        // This method is a placeholder for future multi-claim mechanism grouping.
-        return [];
     }
 
     private static CitationEntry MapCitation(KbEvidence ev, List<string> referencedBy)

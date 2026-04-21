@@ -1,4 +1,4 @@
-namespace Ckp.Core;
+namespace Ckp.Core.Alignment;
 
 /// <summary>
 /// Summary of a cross-book alignment included in the package manifest.

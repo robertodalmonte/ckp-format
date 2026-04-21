@@ -11,7 +11,7 @@ public sealed class FieldPackageCompilerTests
     [Fact]
     public void Single_package_produces_all_frontier_claims()
     {
-        var claim = MakeClaim("alpha-3e.BIO.001", "FAK triggers osteoclasts.", "T1");
+        var claim = MakeClaim("alpha-3e.BIO.001", "FAK triggers osteoclasts.", Tier.T1);
         var package = MakePackage("alpha-3e", 2019, claim);
 
         var result = _compiler.Compile("orthodontics", "2026.4", [package], []);
@@ -25,8 +25,8 @@ public sealed class FieldPackageCompilerTests
     [Fact]
     public void High_confidence_proposal_auto_merges_into_converged_claim()
     {
-        var srcClaim = MakeClaim("alpha-3e.BIO.001", "FAK triggers osteoclasts.", "T1");
-        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Integrin-FAK mechanotransduction.", "T1");
+        var srcClaim = MakeClaim("alpha-3e.BIO.001", "FAK triggers osteoclasts.", Tier.T1);
+        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Integrin-FAK mechanotransduction.", Tier.T1);
 
         var srcPkg = MakePackage("alpha-3e", 2019, srcClaim);
         var tgtPkg = MakePackage("beta-2e", 2022, tgtClaim);
@@ -42,15 +42,15 @@ public sealed class FieldPackageCompilerTests
         var converged = result.Package.Claims.Where(c => c.Status == ClaimStatus.Converged).ToList();
         converged.Should().HaveCount(1);
         converged[0].Attestations.Should().HaveCount(2);
-        converged[0].ConsensusTier.Should().Be("T1");
+        converged[0].ConsensusTier.Should().Be(Tier.T1);
         converged[0].Confidence.FinalValue.Should().BeGreaterThan(0);
     }
 
     [Fact]
     public void Low_confidence_proposal_goes_to_review_queue()
     {
-        var srcClaim = MakeClaim("alpha-3e.BIO.001", "Claim A.", "T1");
-        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Claim B.", "T1");
+        var srcClaim = MakeClaim("alpha-3e.BIO.001", "Claim A.", Tier.T1);
+        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Claim B.", Tier.T1);
 
         var srcPkg = MakePackage("alpha-3e", 2019, srcClaim);
         var tgtPkg = MakePackage("beta-2e", 2022, tgtClaim);
@@ -68,8 +68,8 @@ public sealed class FieldPackageCompilerTests
     [Fact]
     public void Contradiction_proposal_produces_divergent_claim()
     {
-        var srcClaim = MakeClaim("alpha-3e.BIO.001", "Pressure-tension is dominant.", "T1");
-        var tgtClaim = MakeClaim("other-1e.BIO.001", "Piezoelectric is dominant.", "T2");
+        var srcClaim = MakeClaim("alpha-3e.BIO.001", "Pressure-tension is dominant.", Tier.T1);
+        var tgtClaim = MakeClaim("other-1e.BIO.001", "Piezoelectric is dominant.", Tier.T2);
 
         var srcPkg = MakePackage("alpha-3e", 2019, srcClaim);
         var tgtPkg = MakePackage("other-1e", 2020, tgtClaim);
@@ -89,9 +89,9 @@ public sealed class FieldPackageCompilerTests
     [Fact]
     public void Merged_claims_excluded_from_frontier()
     {
-        var srcClaim1 = MakeClaim("alpha-3e.BIO.001", "FAK claim.", "T1");
-        var srcClaim2 = MakeClaim("alpha-3e.EPI.001", "Epidemiology.", "T1");
-        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Mechanotransduction.", "T1");
+        var srcClaim1 = MakeClaim("alpha-3e.BIO.001", "FAK claim.", Tier.T1);
+        var srcClaim2 = MakeClaim("alpha-3e.EPI.001", "Epidemiology.", Tier.T1);
+        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Mechanotransduction.", Tier.T1);
 
         var srcPkg = MakePackage("alpha-3e", 2019, srcClaim1, srcClaim2);
         var tgtPkg = MakePackage("beta-2e", 2022, tgtClaim);
@@ -115,9 +115,9 @@ public sealed class FieldPackageCompilerTests
         {
             new(EvidenceReferenceType.Axiom, "T0:BIO.002", EvidenceRelationship.ConstrainedBy, null, null)
         };
-        var srcClaim = PackageClaim.CreateNew("alpha-3e.BIO.001", "Claim with T0.", "T1",
+        var srcClaim = PackageClaim.CreateNew("alpha-3e.BIO.001", "Claim with T0.", Tier.T1,
             "mechanotransduction", evidence: evidence);
-        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Claim without T0.", "T1");
+        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Claim without T0.", Tier.T1);
 
         var srcPkg = MakePackage("alpha-3e", 2019, srcClaim);
         var tgtPkg = MakePackage("beta-2e", 2022, tgtClaim);
@@ -136,7 +136,7 @@ public sealed class FieldPackageCompilerTests
     [Fact]
     public void Field_package_stores_compilation_parameters()
     {
-        var claim = MakeClaim("alpha-3e.BIO.001", "Test.", "T1");
+        var claim = MakeClaim("alpha-3e.BIO.001", "Test.", Tier.T1);
         var package = MakePackage("alpha-3e", 2019, claim);
 
         var result = _compiler.Compile("orthodontics", "2026.4", [package], []);
@@ -150,9 +150,9 @@ public sealed class FieldPackageCompilerTests
     [Fact]
     public void Converged_claim_has_vocabulary_map_with_both_books()
     {
-        var srcClaim = MakeClaim("alpha-3e.BIO.001", "FAK triggers osteoclasts.", "T1",
+        var srcClaim = MakeClaim("alpha-3e.BIO.001", "FAK triggers osteoclasts.", Tier.T1,
             keywords: ["FAK", "osteoclast"]);
-        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Integrin-FAK signaling.", "T1",
+        var tgtClaim = MakeClaim("beta-2e.MEC.001", "Integrin-FAK signaling.", Tier.T1,
             keywords: ["integrin", "FAK"]);
 
         var srcPkg = MakePackage("alpha-3e", 2019, srcClaim);
@@ -173,8 +173,8 @@ public sealed class FieldPackageCompilerTests
     public void Tier_disagreement_with_high_weight_triggers_turbulence()
     {
         // Recent book (2024) says T2, old consensus says T1
-        var srcClaim = MakeClaim("old-1e.BIO.001", "Established claim.", "T1");
-        var tgtClaim = MakeClaim("new-1e.BIO.001", "Demoted claim.", "T2");
+        var srcClaim = MakeClaim("old-1e.BIO.001", "Established claim.", Tier.T1);
+        var tgtClaim = MakeClaim("new-1e.BIO.001", "Demoted claim.", Tier.T2);
 
         var srcPkg = MakePackage("old-1e", 2010, srcClaim);
         var tgtPkg = MakePackage("new-1e", 2024, tgtClaim);
@@ -195,7 +195,7 @@ public sealed class FieldPackageCompilerTests
     // ── Helpers ──────────────────────────────────────────────────────────
 
     private static PackageClaim MakeClaim(
-        string id, string statement, string tier,
+        string id, string statement, Tier tier,
         IReadOnlyList<string>? keywords = null,
         IReadOnlyList<EvidenceReference>? evidence = null) =>
         PackageClaim.CreateNew(id: id, statement: statement, tier: tier,
@@ -203,13 +203,13 @@ public sealed class FieldPackageCompilerTests
 
     private static CkpPackage MakePackage(string bookKey, int year, params PackageClaim[] claims)
     {
-        int t1 = claims.Count(c => c.Tier == "T1");
-        int t2 = claims.Count(c => c.Tier == "T2");
-        int t3 = claims.Count(c => c.Tier == "T3");
-        int t4 = claims.Count(c => c.Tier == "T4");
+        int t1 = claims.Count(c => c.Tier == Tier.T1);
+        int t2 = claims.Count(c => c.Tier == Tier.T2);
+        int t3 = claims.Count(c => c.Tier == Tier.T3);
+        int t4 = claims.Count(c => c.Tier == Tier.T4);
         var book = new BookMetadata(bookKey, "Test", 1, ["Author"], "Pub", year, null, "en-US", []);
         var fp = new ContentFingerprint("SHA-256", claims.Length, 1, t1, t2, t3, t4, 0);
         var manifest = PackageManifest.CreateNew(book, fp);
-        return new CkpPackage(manifest, claims, [], [], [], [], [], [], [], [], [], [], []);
+        return new CkpPackage { Manifest = manifest, Claims = claims };
     }
 }

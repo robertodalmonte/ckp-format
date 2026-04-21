@@ -179,6 +179,11 @@ public sealed class EpubTranspilerTests
         var manifest = PackageManifest.CreateNew(book, fp);
         var edition = new EditionInfo(1, 2026, null, null, "Structure extracted from ePub");
 
-        return new CkpPackage(manifest, [], [], [], chapterInfos, [], [], [edition], [], [], [], [], []);
+        return new CkpPackage
+        {
+            Manifest = manifest,
+            Chapters = chapterInfos,
+            Editions = [edition],
+        };
     }
 }

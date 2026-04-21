@@ -1,5 +1,6 @@
 namespace Ckp.Tests.Field;
 
+using Ckp.Core;
 using Ckp.Core.Field;
 
 public sealed class ConfidenceScoreCalculatorTests
@@ -101,7 +102,8 @@ public sealed class ConfidenceScoreCalculatorTests
     [Fact]
     public void Single_attestation_score_equals_its_weight()
     {
-        var att = new Attestation("alpha-3e", "alpha-3e.BIO.007", "T1", 2019, 6, 0.785, null);
+        double w = ConfidenceScoreCalculator.ComputeWeight(1.0, 2019, 2026, 6);
+        var att = new Attestation("alpha-3e", "alpha-3e.BIO.007", Tier.T1, 2019, 6, 1.0, w, null);
 
         var score = ConfidenceScoreCalculator.ComputeScore([att], currentYear: 2026);
 
@@ -111,8 +113,10 @@ public sealed class ConfidenceScoreCalculatorTests
     [Fact]
     public void Multiple_attestations_produce_averaged_score()
     {
-        var att1 = new Attestation("alpha-3e", "p.001", "T1", 2019, 6, 0, null);
-        var att2 = new Attestation("beta-2e", "s.001", "T1", 2022, 2, 0, null);
+        double w1 = ConfidenceScoreCalculator.ComputeWeight(1.0, 2019, 2026, 6);
+        double w2 = ConfidenceScoreCalculator.ComputeWeight(1.0, 2022, 2026, 2);
+        var att1 = new Attestation("alpha-3e", "p.001", Tier.T1, 2019, 6, 1.0, w1, null);
+        var att2 = new Attestation("beta-2e", "s.001", Tier.T1, 2022, 2, 1.0, w2, null);
 
         var score = ConfidenceScoreCalculator.ComputeScore([att1, att2], currentYear: 2026);
 
@@ -124,7 +128,8 @@ public sealed class ConfidenceScoreCalculatorTests
     [Fact]
     public void Score_decomposes_base_decay_and_bonus()
     {
-        var att = new Attestation("alpha-3e", "p.001", "T1", 2019, 6, 0, null);
+        double w = ConfidenceScoreCalculator.ComputeWeight(1.0, 2019, 2026, 6);
+        var att = new Attestation("alpha-3e", "p.001", Tier.T1, 2019, 6, 1.0, w, null);
 
         var score = ConfidenceScoreCalculator.ComputeScore([att], currentYear: 2026);
 

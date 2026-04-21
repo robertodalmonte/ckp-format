@@ -14,6 +14,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="TestData\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Ckp.Core\Ckp.Core.csproj" />
     <ProjectReference Include="..\..\src\Ckp.IO\Ckp.IO.csproj" />
     <ProjectReference Include="..\..\src\Ckp.Signing\Ckp.Signing.csproj" />
