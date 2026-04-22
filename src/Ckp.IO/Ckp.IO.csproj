@@ -5,4 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ckp.Tests" />
+  </ItemGroup>
 </Project>
