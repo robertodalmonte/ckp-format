@@ -1,0 +1,5 @@
+# Ckp.Benchmarks output
+BenchmarkDotNet.Artifacts/
+bin/
+obj/
+

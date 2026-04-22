@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <!--
+      BenchmarkDotNet writes a minimal Program.cs for each run; its generated code
+      occasionally trips analyzer warnings that the reference implementation treats
+      as errors. Loosening warnings here is isolated to the benchmark harness.
+    -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />
+    <ProjectReference Include="..\Ckp.IO\Ckp.IO.csproj" />
+    <ProjectReference Include="..\Ckp.Signing\Ckp.Signing.csproj" />
+  </ItemGroup>
+</Project>
