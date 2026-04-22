@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>Ckp.Epub</RootNamespace>
+    <Description>Extracts chapter structure and text from an .epub file and emits a CKP skeleton package (book metadata, chapter index, zero claims) with chapter text attached as supplementary entries. Entry point is EpubTranspiler; the TranspileAndWriteAsync extension wraps write-to-disk so CLI callers never reference Ckp.IO directly.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />

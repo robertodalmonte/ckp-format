@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>Ckp.Core</RootNamespace>
+    <Description>Pure domain types for the Consilience Knowledge Package (CKP) format: claims, observables, tier history, manifests, alignments, enrichment records, validation diagnostics, and the CKP 2.0 field-package types. Zero project or runtime dependencies outside the BCL — consumers that only need to inspect a hydrated package reference this assembly alone.</Description>
   </PropertyGroup>
 </Project>

@@ -1,12 +1,29 @@
 # Plan: KnowledgeBase-to-CKP Transpiler
 
+> **Historical document — do not treat as authoritative.**
+>
+> This is the April-15 design document that drove the initial
+> `Ckp.Transpiler` implementation. The transpiler shipped, the library/CLI
+> split landed on 2026-04-21, and subsequent changes (A2 facade, architecture
+> layering, hardened reader/writer) have moved beyond what is described here.
+> The architectural invariants now live in [`Architecture.md`](Architecture.md);
+> the format contract lives in [`CKP_FORMAT_SPEC.md`](CKP_FORMAT_SPEC.md); the
+> current executable is `ckp-transpile` at `src/Ckp.Transpiler.Cli`, invoked as
+> `dotnet run --project src/Ckp.Transpiler.Cli -- <kb-path> <output.ckp>`.
+>
+> Retained because it records the reasoning behind the original domain-split
+> (mechanisms / integrations / observations / traditions) and the
+> one-claim-per-mechanism-file choice, both of which are still load-bearing in
+> the current code. Anything else should be cross-checked against the live
+> spec and architecture docs before acting on it.
+
 ## Goal
 
 Transpile the Consilience KnowledgeBase (JSON files encoding scientific claims, evidence, and integration relationships) into a valid `.ckp` package via `CkpPackageWriter`.
 
-## Status: IMPLEMENTED
+## Status: IMPLEMENTED (April 2026 — see historical note above)
 
-Console tool: `dotnet run --project src/Ckp.Transpiler -- <knowledgebase-path> <output.ckp>`
+Console tool: `dotnet run --project src/Ckp.Transpiler.Cli -- <knowledgebase-path> <output.ckp>`
 
 ## Context
 

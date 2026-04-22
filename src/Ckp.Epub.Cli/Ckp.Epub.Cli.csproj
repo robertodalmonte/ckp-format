@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Ckp.Epub.Cli</RootNamespace>
     <AssemblyName>ckp-epub</AssemblyName>
+    <Description>Command-line front-end for Ckp.Epub. Reads an .epub file and writes a CKP skeleton package with chapter text attached.</Description>
   </PropertyGroup>
   <ItemGroup>
     <!-- A2: CLI depends only on the library. The library itself references Ckp.IO. -->

@@ -3,6 +3,11 @@ namespace Ckp.Transpiler;
 using System.Text.Json.Serialization;
 
 /// <summary>integrations/transitions.json entries.</summary>
+/// <remarks>
+/// JSON deserialization DTO, shape-locked to the KnowledgeBase layout. Transpiled
+/// into <see cref="Ckp.Core.TierHistoryEntry"/> entries on claims. Internal by B2;
+/// exposed to <c>Ckp.Tests</c> via <c>InternalsVisibleTo</c>.
+/// </remarks>
 internal sealed class TransitionRecord
 {
     [JsonPropertyName("id")]

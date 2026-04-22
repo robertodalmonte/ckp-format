@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
+    <Description>BenchmarkDotNet harness for CKP performance regressions. Not part of the shipping solution (ckp-format.slnx); run separately via `dotnet run -c Release --project src/Ckp.Benchmarks`.</Description>
     <!--
       BenchmarkDotNet writes a minimal Program.cs for each run; its generated code
       occasionally trips analyzer warnings that the reference implementation treats

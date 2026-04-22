@@ -1,8 +1,47 @@
-// A2: this CLI depends only on Ckp.Epub (which transitively brings Ckp.Core and the
-// façade over Ckp.IO for writing). The direct Ckp.IO / System.IO.Compression coupling
-// that pre-A2 existed here has moved into Ckp.Epub.EpubTranspilerExtensions — see
-// docs/Architecture.md for the allowed-edges graph that forbids CLI projects from
-// reaching across the library layer.
+// ckp-epub — .epub → CKP skeleton package (book metadata + chapter text)
+//
+// USAGE
+//   ckp-epub <book.epub> <output.ckp> --key <key> [options]
+//
+// ARGUMENTS
+//   book.epub           Path to the source ePub file.
+//   output.ckp          File path for the written package. Truncated if it
+//                       already exists.
+//
+// REQUIRED OPTIONS
+//   --key <key>         Short book identifier, e.g. `my-textbook-3e`. Part of
+//                       every claim id prefix when the package is enriched
+//                       downstream.
+//
+// OPTIONAL OPTIONS
+//   --title <title>     Book title (defaults to the ePub filename).
+//   --authors <names>   Comma-separated author names.
+//   --publisher <name>  Publisher name.
+//   --edition <N>       Edition number (default: 1).
+//   --year <YYYY>       Publication year (default: current year).
+//
+// OUTPUT
+//   A CKP package with a full manifest (book metadata, chapter index), zero
+//   claims (ready for downstream enrichment), and one `chapters/NNN.txt`
+//   entry per extracted chapter. The chapter text entries are appended after
+//   the canonical writer closes, so they do NOT contribute to the signed
+//   content hash — they are auxiliary source material, not claim content.
+//
+// EXIT CODES
+//   0  Package written successfully.
+//   1  Argument parse failure, missing ePub file, or unknown option.
+//
+// EXAMPLE
+//   ckp-epub "./Gray's Anatomy (42e).epub" ./out/grays-42.ckp \
+//     --key grays-anatomy-42e --authors "Susan Standring" --year 2021
+//
+// ARCHITECTURE
+//   A2: this CLI depends only on Ckp.Epub (which transitively brings
+//   Ckp.Core and the façade over Ckp.IO for writing). The direct Ckp.IO /
+//   System.IO.Compression coupling that pre-A2 existed here has moved into
+//   Ckp.Epub.EpubTranspilerExtensions — see docs/Architecture.md for the
+//   allowed-edges graph that forbids CLI projects from reaching across the
+//   library layer.
 using Ckp.Epub;
 
 if (args.Length < 2)

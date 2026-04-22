@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>Ckp.Signing</RootNamespace>
+    <Description>Ed25519 signing and verification for CKP manifests, built on NSec.Cryptography. Signs the canonical-JSON form of the manifest, which transitively covers the package content via the sorted-leaf SHA-256 content hash carried inside the manifest.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NSec.Cryptography" />

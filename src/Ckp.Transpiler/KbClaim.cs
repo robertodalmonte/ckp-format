@@ -3,9 +3,13 @@ namespace Ckp.Transpiler;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// JSON DTOs matching the Consilience KnowledgeBase file schemas.
+/// JSON deserialization DTO matching the Consilience KnowledgeBase claim schema.
 /// </summary>
-
+/// <remarks>
+/// Not part of the CKP wire format — transpiled into <see cref="Ckp.Core.PackageClaim"/>
+/// and discarded. Internal by B2; exposed to <c>Ckp.Tests</c> via
+/// <c>InternalsVisibleTo</c>.
+/// </remarks>
 internal sealed class KbClaim
 {
     [JsonPropertyName("id")]

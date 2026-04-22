@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>Ckp.Transpiler</RootNamespace>
+    <Description>Transpiles a Consilience KnowledgeBase (JSON mechanism, integration, observation, and tradition files) into a CKP package. Entry point is KnowledgeBaseTranspiler; the TranspileAndWriteAsync extension wraps write-to-disk so CLI callers never reference Ckp.IO directly.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />

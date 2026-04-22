@@ -2,6 +2,14 @@ namespace Ckp.Transpiler;
 
 using System.Text.Json.Serialization;
 
+/// <summary>
+/// Signatures block for a T4 tradition file: the tradition's domain, name, and
+/// the search/physiological/practice terms used by the alignment proposer.
+/// </summary>
+/// <remarks>
+/// JSON deserialization DTO; not part of the CKP wire format. Internal by B2;
+/// exposed to <c>Ckp.Tests</c> via <c>InternalsVisibleTo</c>.
+/// </remarks>
 internal sealed class KbTraditionSignatures
 {
     [JsonPropertyName("domain")]

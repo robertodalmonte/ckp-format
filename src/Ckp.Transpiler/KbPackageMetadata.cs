@@ -6,6 +6,10 @@ using System.Text.Json.Serialization;
 /// Metadata read from package.json in the KnowledgeBase directory.
 /// Provides the book identity for the output .ckp package.
 /// </summary>
+/// <remarks>
+/// JSON deserialization DTO; not part of the CKP wire format. Internal by B2;
+/// exposed to <c>Ckp.Tests</c> via <c>InternalsVisibleTo</c>.
+/// </remarks>
 internal sealed class KbPackageMetadata
 {
     [JsonPropertyName("key")]

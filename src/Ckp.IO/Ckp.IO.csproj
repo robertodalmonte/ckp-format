@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>Ckp.IO</RootNamespace>
+    <Description>Reader, writer, extraction validator, alignment proposer, and field-package compiler for the Consilience Knowledge Package (CKP) format. Implements the byte-deterministic ZIP + canonical-JSON serialization contract. References Ckp.Core only.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />

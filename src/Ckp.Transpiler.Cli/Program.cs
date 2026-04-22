@@ -1,7 +1,27 @@
-// A2: this CLI depends only on Ckp.Transpiler (which transitively brings Ckp.Core and
-// Ckp.IO types surfaced through the façade). The direct Ckp.IO reference that pre-A2
-// existed here has been dropped — see docs/Architecture.md for the allowed-edges
-// graph that forbids CLI projects from reaching across the library layer.
+// ckp-transpile — Consilience KnowledgeBase → CKP package
+//
+// USAGE
+//   ckp-transpile <knowledgebase-path> <output.ckp>
+//
+// ARGUMENTS
+//   knowledgebase-path  Directory containing mechanisms/, integrations/,
+//                       observations/, and traditions/ subfolders.
+//   output.ckp          File path for the written package. Truncated if it
+//                       already exists.
+//
+// EXIT CODES
+//   0  Package written successfully.
+//   1  Argument parse failure or missing input directory.
+//
+// EXAMPLE
+//   ckp-transpile ./my-kb ./out/my-kb.ckp
+//
+// ARCHITECTURE
+//   A2: this CLI depends only on Ckp.Transpiler (which transitively brings
+//   Ckp.Core and Ckp.IO types surfaced through the façade). The direct Ckp.IO
+//   reference that pre-A2 existed here has been dropped — see
+//   docs/Architecture.md for the allowed-edges graph that forbids CLI projects
+//   from reaching across the library layer.
 using Ckp.Transpiler;
 
 if (args.Length < 2)

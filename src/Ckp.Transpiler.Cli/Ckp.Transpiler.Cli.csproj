@@ -3,6 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Ckp.Transpiler.Cli</RootNamespace>
     <AssemblyName>ckp-transpile</AssemblyName>
+    <Description>Command-line front-end for Ckp.Transpiler. Reads a KnowledgeBase directory and writes a .ckp package.</Description>
   </PropertyGroup>
   <ItemGroup>
     <!-- A2: CLI depends only on the library. The library itself references Ckp.IO. -->
