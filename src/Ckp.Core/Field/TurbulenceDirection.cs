@@ -4,6 +4,11 @@ namespace Ckp.Core.Field;
 /// Direction of an epistemic turbulence event triggered by a recent authoritative
 /// source diverging from historical consensus.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum TurbulenceDirection
 {
     /// <summary>New source promotes the claim to a higher tier than consensus.</summary>

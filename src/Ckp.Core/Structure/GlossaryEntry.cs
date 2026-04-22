@@ -10,6 +10,11 @@ namespace Ckp.Core.Structure;
 /// <param name="MeshTerm">MeSH descriptor ID, or null if no MeSH mapping exists.</param>
 /// <param name="EquivalentsInOtherBooks">Book key → term mapping for cross-book synonyms.</param>
 /// <param name="Note">Optional annotation (e.g., "Four books, four names, one transducer type.").</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record GlossaryEntry(
     string BookTerm,
     string StandardTerm,

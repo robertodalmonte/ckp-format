@@ -15,6 +15,10 @@ using Ckp.Core.Field;
 /// <item>Vocabulary map assembly</item>
 /// </list>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Concrete implementation of
+/// <see cref="IFieldPackageCompiler"/>; prefer the interface in DI.
+/// </remarks>
 public sealed class FieldPackageCompiler : IFieldPackageCompiler
 {
     private const double Lambda = ConfidenceScoreCalculator.DefaultLambda;

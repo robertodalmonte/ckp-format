@@ -9,6 +9,11 @@ namespace Ckp.Core.Structure;
 /// <param name="T2Count">T2 claims in this domain.</param>
 /// <param name="T3Count">T3 claims in this domain.</param>
 /// <param name="T4Count">T4 claims in this domain.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record DomainInfo(
     string Name,
     int ClaimCount,

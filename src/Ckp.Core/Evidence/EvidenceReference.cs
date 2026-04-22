@@ -9,6 +9,11 @@ namespace Ckp.Core.Evidence;
 /// <param name="Relationship">How this evidence relates to the claim.</param>
 /// <param name="Strength">Evidence strength classification (null for axiom refs).</param>
 /// <param name="Note">Optional human-readable annotation.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record EvidenceReference(
     EvidenceReferenceType Type,
     string Ref,

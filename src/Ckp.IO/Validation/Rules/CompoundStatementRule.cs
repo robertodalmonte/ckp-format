@@ -6,6 +6,11 @@ using Ckp.Core;
 /// <summary>
 /// SEM2: Detects statements containing multiple independent assertions.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users constructing <see cref="CkpExtractionValidator"/>
+/// manually (e.g., tests). In production, these rules are wired in by the validator's
+/// constructor and need not be instantiated directly.
+/// </remarks>
 public sealed class CompoundStatementRule : IExtractionRule
 {
     public IEnumerable<ClaimValidationDiagnostic> Validate(

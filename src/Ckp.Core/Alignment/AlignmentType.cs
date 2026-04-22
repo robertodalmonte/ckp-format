@@ -3,6 +3,11 @@ namespace Ckp.Core.Alignment;
 /// <summary>
 /// Classification of how two claims from different books relate to each other.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum AlignmentType
 {
     /// <summary>Same phenomenon, same or different vocabulary.</summary>

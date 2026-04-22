@@ -5,6 +5,12 @@ using Ckp.Core;
 /// <summary>
 /// Writes a <see cref="CkpPackage"/> domain aggregate to a .ckp ZIP archive.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users that emit CKP packages — transpilers, editors,
+/// compilers. The output is deterministic (lexicographic entry order, pinned timestamps,
+/// canonical manifest JSON) so two semantically equal packages produce byte-identical
+/// archives.
+/// </remarks>
 public interface ICkpPackageWriter
 {
     /// <summary>

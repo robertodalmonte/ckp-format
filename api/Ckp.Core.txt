@@ -1,0 +1,647 @@
+sealed class Ckp.Core.Alignment.AlignmentSummary
+  ctor: (System.String TargetBook, System.String TargetPackageId, System.Int32 AlignedClaims, System.Int32 TierMismatches)
+  method: Ckp.Core.Alignment.AlignmentSummary <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Alignment.AlignmentSummary other)
+  method: System.Void Deconstruct(out System.String TargetBook, out System.String TargetPackageId, out System.Int32 AlignedClaims, out System.Int32 TierMismatches)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Int32 AlignedClaims { get; init }
+  property: System.Int32 TierMismatches { get; init }
+  property: System.String TargetBook { get; init }
+  property: System.String TargetPackageId { get; init }
+
+enum Ckp.Core.Alignment.AlignmentType
+  field: System.Int32 value__
+  field: const Ckp.Core.Alignment.AlignmentType Complementary
+  field: const Ckp.Core.Alignment.AlignmentType Contradictory
+  field: const Ckp.Core.Alignment.AlignmentType Equivalent
+  field: const Ckp.Core.Alignment.AlignmentType Overlapping
+  field: const Ckp.Core.Alignment.AlignmentType Unmatched
+
+sealed class Ckp.Core.Alignment.BookAlignment
+  ctor: (System.String SourceBook, System.String TargetBook, System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.ClaimAlignment> Alignments)
+  method: Ckp.Core.Alignment.BookAlignment <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Alignment.BookAlignment other)
+  method: System.Void Deconstruct(out System.String SourceBook, out System.String TargetBook, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.ClaimAlignment> Alignments)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.ClaimAlignment> Alignments { get; init }
+  property: System.String SourceBook { get; init }
+  property: System.String TargetBook { get; init }
+
+sealed class Ckp.Core.Alignment.ClaimAlignment
+  ctor: (System.String SourceClaim, System.String TargetClaim, Ckp.Core.Alignment.AlignmentType Type, System.Nullable<System.Double> Confidence, Ckp.Core.Alignment.TierMismatch Mismatch, Ckp.Core.Validation.VocabularyBridge Bridge, System.String AlignedBy, System.String ReviewedBy, System.String Note)
+  method: Ckp.Core.Alignment.ClaimAlignment <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Alignment.ClaimAlignment other)
+  method: System.Void Deconstruct(out System.String SourceClaim, out System.String TargetClaim, out Ckp.Core.Alignment.AlignmentType Type, out System.Nullable<System.Double> Confidence, out Ckp.Core.Alignment.TierMismatch Mismatch, out Ckp.Core.Validation.VocabularyBridge Bridge, out System.String AlignedBy, out System.String ReviewedBy, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Alignment.AlignmentType Type { get; init }
+  property: Ckp.Core.Alignment.TierMismatch Mismatch { get; init }
+  property: Ckp.Core.Validation.VocabularyBridge Bridge { get; init }
+  property: System.Nullable<System.Double> Confidence { get; init }
+  property: System.String AlignedBy { get; init }
+  property: System.String Note { get; init }
+  property: System.String ReviewedBy { get; init }
+  property: System.String SourceClaim { get; init }
+  property: System.String TargetClaim { get; init }
+
+sealed class Ckp.Core.Alignment.TierMismatch
+  ctor: (Ckp.Core.Claims.Tier SourceTier, Ckp.Core.Claims.Tier TargetTier, Ckp.Core.Alignment.TierMismatchDirection Direction)
+  method: Ckp.Core.Alignment.TierMismatch <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Alignment.TierMismatch other)
+  method: System.Void Deconstruct(out Ckp.Core.Claims.Tier SourceTier, out Ckp.Core.Claims.Tier TargetTier, out Ckp.Core.Alignment.TierMismatchDirection Direction)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Alignment.TierMismatchDirection Direction { get; init }
+  property: Ckp.Core.Claims.Tier SourceTier { get; init }
+  property: Ckp.Core.Claims.Tier TargetTier { get; init }
+
+enum Ckp.Core.Alignment.TierMismatchDirection
+  field: System.Int32 value__
+  field: const Ckp.Core.Alignment.TierMismatchDirection Same
+  field: const Ckp.Core.Alignment.TierMismatchDirection SourceAhead
+  field: const Ckp.Core.Alignment.TierMismatchDirection TargetAhead
+
+sealed class Ckp.Core.CkpPackage
+  ctor: ()
+  method: Ckp.Core.CkpPackage <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.CkpPackage other)
+  method: static Ckp.Core.CkpPackage Empty(Ckp.Core.Manifest.PackageManifest manifest)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Manifest.PackageManifest Manifest { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.BookAlignment> Alignments { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.PackageClaim> Claims { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Enrichment.CommentaryEntry> CommunityCommentary { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Enrichment.CommentaryEntry> PublisherCommentary { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Enrichment.MechanismEntry> Mechanisms { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Enrichment.PhenomenonEntry> Phenomena { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.CitationEntry> Citations { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> AxiomRefs { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Structure.ChapterInfo> Chapters { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Structure.DomainInfo> Domains { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Structure.EditionInfo> Editions { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Structure.GlossaryEntry> Glossary { get; init }
+
+static class Ckp.Core.Claims.CkpHash
+  method: static System.String OfStatement(System.String statement)
+
+sealed class Ckp.Core.Claims.Observable
+  ctor: (System.String Measurement, System.String Unit, System.String Direction, System.String Latency, System.String Instrument)
+  method: Ckp.Core.Claims.Observable <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Claims.Observable other)
+  method: System.Void Deconstruct(out System.String Measurement, out System.String Unit, out System.String Direction, out System.String Latency, out System.String Instrument)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.String Direction { get; init }
+  property: System.String Instrument { get; init }
+  property: System.String Latency { get; init }
+  property: System.String Measurement { get; init }
+  property: System.String Unit { get; init }
+
+sealed class Ckp.Core.Claims.PackageClaim
+  ctor: (System.String Id, System.String Statement, Ckp.Core.Claims.Tier Tier, System.String Domain, System.String SubDomain, System.Nullable<System.Int32> Chapter, System.String Section, System.String PageRange, System.Collections.Generic.IReadOnlyList<System.String> Keywords, System.Collections.Generic.IReadOnlyList<System.String> MeshTerms, System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> Evidence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> Observables, System.Nullable<System.Int32> SinceEdition, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> TierHistory, System.String Hash)
+  method: Ckp.Core.Claims.PackageClaim <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Claims.PackageClaim other)
+  method: System.Void Deconstruct(out System.String Id, out System.String Statement, out Ckp.Core.Claims.Tier Tier, out System.String Domain, out System.String SubDomain, out System.Nullable<System.Int32> Chapter, out System.String Section, out System.String PageRange, out System.Collections.Generic.IReadOnlyList<System.String> Keywords, out System.Collections.Generic.IReadOnlyList<System.String> MeshTerms, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> Evidence, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> Observables, out System.Nullable<System.Int32> SinceEdition, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> TierHistory, out System.String Hash)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Claims.Tier Tier { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> Observables { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> TierHistory { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> Evidence { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> Keywords { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> MeshTerms { get; init }
+  property: System.Nullable<System.Int32> Chapter { get; init }
+  property: System.Nullable<System.Int32> SinceEdition { get; init }
+  property: System.String Domain { get; init }
+  property: System.String Hash { get; init }
+  property: System.String Id { get; init }
+  property: System.String PageRange { get; init }
+  property: System.String Section { get; init }
+  property: System.String Statement { get; init }
+  property: System.String SubDomain { get; init }
+
+static class Ckp.Core.Claims.PackageClaimConstruction
+  method: static Ckp.Core.Claims.PackageClaim CreateNew(System.String id, System.String statement, Ckp.Core.Claims.Tier tier, System.String domain, System.String subDomain, System.Nullable<System.Int32> chapter, System.String section, System.String pageRange, System.Collections.Generic.IReadOnlyList<System.String> keywords, System.Collections.Generic.IReadOnlyList<System.String> meshTerms, System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> evidence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> observables, System.Nullable<System.Int32> sinceEdition, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> tierHistory)
+  method: static Ckp.Core.Claims.PackageClaim Restore(System.String id, System.String statement, Ckp.Core.Claims.Tier tier, System.String domain, System.String subDomain, System.Nullable<System.Int32> chapter, System.String section, System.String pageRange, System.Collections.Generic.IReadOnlyList<System.String> keywords, System.Collections.Generic.IReadOnlyList<System.String> meshTerms, System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> evidence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> observables, System.Nullable<System.Int32> sinceEdition, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> tierHistory, System.String hash)
+  nested: Ckp.Core.Claims.<G>$CB80CAE8B2F8B78E2D54F76C731A965E
+
+sealed class Ckp.Core.Claims.PackageClaimConstruction+<G>$CB80CAE8B2F8B78E2D54F76C731A965E
+  method: static Ckp.Core.Claims.PackageClaim CreateNew(System.String id, System.String statement, Ckp.Core.Claims.Tier tier, System.String domain, System.String subDomain, System.Nullable<System.Int32> chapter, System.String section, System.String pageRange, System.Collections.Generic.IReadOnlyList<System.String> keywords, System.Collections.Generic.IReadOnlyList<System.String> meshTerms, System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> evidence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> observables, System.Nullable<System.Int32> sinceEdition, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> tierHistory)
+  method: static Ckp.Core.Claims.PackageClaim Restore(System.String id, System.String statement, Ckp.Core.Claims.Tier tier, System.String domain, System.String subDomain, System.Nullable<System.Int32> chapter, System.String section, System.String pageRange, System.Collections.Generic.IReadOnlyList<System.String> keywords, System.Collections.Generic.IReadOnlyList<System.String> meshTerms, System.Collections.Generic.IReadOnlyList<Ckp.Core.Evidence.EvidenceReference> evidence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.Observable> observables, System.Nullable<System.Int32> sinceEdition, System.Collections.Generic.IReadOnlyList<Ckp.Core.Claims.TierHistoryEntry> tierHistory, System.String hash)
+  nested: Ckp.Core.Claims.<M>$7F106D4951B2FEC909716B0289D51A08
+
+static class Ckp.Core.Claims.PackageClaimConstruction+<G>$CB80CAE8B2F8B78E2D54F76C731A965E+<M>$7F106D4951B2FEC909716B0289D51A08
+
+enum Ckp.Core.Claims.Tier
+  field: System.Int32 value__
+  field: const Ckp.Core.Claims.Tier T1
+  field: const Ckp.Core.Claims.Tier T2
+  field: const Ckp.Core.Claims.Tier T3
+  field: const Ckp.Core.Claims.Tier T4
+
+sealed class Ckp.Core.Claims.TierHistoryEntry
+  ctor: (System.Int32 Edition, Ckp.Core.Claims.Tier Tier, System.String Note)
+  method: Ckp.Core.Claims.TierHistoryEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Claims.TierHistoryEntry other)
+  method: System.Void Deconstruct(out System.Int32 Edition, out Ckp.Core.Claims.Tier Tier, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Claims.Tier Tier { get; init }
+  property: System.Int32 Edition { get; init }
+  property: System.String Note { get; init }
+
+sealed class Ckp.Core.Enrichment.CommentaryEntry
+  ctor: (System.String ClaimId, System.String Author, System.String Text, System.DateTimeOffset CreatedAt)
+  method: Ckp.Core.Enrichment.CommentaryEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Enrichment.CommentaryEntry other)
+  method: System.Void Deconstruct(out System.String ClaimId, out System.String Author, out System.String Text, out System.DateTimeOffset CreatedAt)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.DateTimeOffset CreatedAt { get; init }
+  property: System.String Author { get; init }
+  property: System.String ClaimId { get; init }
+  property: System.String Text { get; init }
+
+sealed class Ckp.Core.Enrichment.MechanismEntry
+  ctor: (System.String Name, System.String Description, System.Collections.Generic.IReadOnlyList<System.String> ClaimIds, System.Collections.Generic.IReadOnlyList<System.String> PathwayTerms, System.Collections.Generic.IReadOnlyList<System.String> PredictedMeasurements)
+  method: Ckp.Core.Enrichment.MechanismEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Enrichment.MechanismEntry other)
+  method: System.Void Deconstruct(out System.String Name, out System.String Description, out System.Collections.Generic.IReadOnlyList<System.String> ClaimIds, out System.Collections.Generic.IReadOnlyList<System.String> PathwayTerms, out System.Collections.Generic.IReadOnlyList<System.String> PredictedMeasurements)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<System.String> ClaimIds { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> PathwayTerms { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> PredictedMeasurements { get; init }
+  property: System.String Description { get; init }
+  property: System.String Name { get; init }
+
+sealed class Ckp.Core.Enrichment.PhenomenonEntry
+  ctor: (System.String Name, System.String Description, System.Collections.Generic.IReadOnlyList<System.String> ClaimIds, System.String SharedConcept)
+  method: Ckp.Core.Enrichment.PhenomenonEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Enrichment.PhenomenonEntry other)
+  method: System.Void Deconstruct(out System.String Name, out System.String Description, out System.Collections.Generic.IReadOnlyList<System.String> ClaimIds, out System.String SharedConcept)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<System.String> ClaimIds { get; init }
+  property: System.String Description { get; init }
+  property: System.String Name { get; init }
+  property: System.String SharedConcept { get; init }
+
+sealed class Ckp.Core.Evidence.CitationEntry
+  ctor: (System.String Ref, System.String Title, System.String Authors, System.Nullable<System.Int32> Year, System.String Journal, System.Collections.Generic.IReadOnlyList<System.String> ReferencedBy)
+  method: Ckp.Core.Evidence.CitationEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Evidence.CitationEntry other)
+  method: System.Void Deconstruct(out System.String Ref, out System.String Title, out System.String Authors, out System.Nullable<System.Int32> Year, out System.String Journal, out System.Collections.Generic.IReadOnlyList<System.String> ReferencedBy)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<System.String> ReferencedBy { get; init }
+  property: System.Nullable<System.Int32> Year { get; init }
+  property: System.String Authors { get; init }
+  property: System.String Journal { get; init }
+  property: System.String Ref { get; init }
+  property: System.String Title { get; init }
+
+sealed class Ckp.Core.Evidence.EvidenceReference
+  ctor: (Ckp.Core.Evidence.EvidenceReferenceType Type, System.String Ref, Ckp.Core.Evidence.EvidenceRelationship Relationship, System.Nullable<Ckp.Core.Evidence.EvidenceStrength> Strength, System.String Note)
+  method: Ckp.Core.Evidence.EvidenceReference <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Evidence.EvidenceReference other)
+  method: System.Void Deconstruct(out Ckp.Core.Evidence.EvidenceReferenceType Type, out System.String Ref, out Ckp.Core.Evidence.EvidenceRelationship Relationship, out System.Nullable<Ckp.Core.Evidence.EvidenceStrength> Strength, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Evidence.EvidenceReferenceType Type { get; init }
+  property: Ckp.Core.Evidence.EvidenceRelationship Relationship { get; init }
+  property: System.Nullable<Ckp.Core.Evidence.EvidenceStrength> Strength { get; init }
+  property: System.String Note { get; init }
+  property: System.String Ref { get; init }
+
+enum Ckp.Core.Evidence.EvidenceReferenceType
+  field: System.Int32 value__
+  field: const Ckp.Core.Evidence.EvidenceReferenceType Axiom
+  field: const Ckp.Core.Evidence.EvidenceReferenceType Citation
+  field: const Ckp.Core.Evidence.EvidenceReferenceType InternalRef
+
+enum Ckp.Core.Evidence.EvidenceRelationship
+  field: System.Int32 value__
+  field: const Ckp.Core.Evidence.EvidenceRelationship ConstrainedBy
+  field: const Ckp.Core.Evidence.EvidenceRelationship Contradicts
+  field: const Ckp.Core.Evidence.EvidenceRelationship Supports
+
+enum Ckp.Core.Evidence.EvidenceStrength
+  field: System.Int32 value__
+  field: const Ckp.Core.Evidence.EvidenceStrength Confirmatory
+  field: const Ckp.Core.Evidence.EvidenceStrength Peripheral
+  field: const Ckp.Core.Evidence.EvidenceStrength Primary
+
+sealed class Ckp.Core.Field.AlignmentProposal
+  ctor: (System.String SourceClaimId, System.String TargetClaimId, System.Double Score, System.String Reason, System.String ProposedCanonicalId, System.Boolean IsContradiction)
+  method: Ckp.Core.Field.AlignmentProposal <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.AlignmentProposal other)
+  method: System.Void Deconstruct(out System.String SourceClaimId, out System.String TargetClaimId, out System.Double Score, out System.String Reason, out System.String ProposedCanonicalId, out System.Boolean IsContradiction)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Boolean IsContradiction { get; init }
+  property: System.Double Score { get; init }
+  property: System.String ProposedCanonicalId { get; init }
+  property: System.String Reason { get; init }
+  property: System.String SourceClaimId { get; init }
+  property: System.String TargetClaimId { get; init }
+
+sealed class Ckp.Core.Field.Attestation
+  ctor: (System.String BookId, System.String ClaimId, Ckp.Core.Claims.Tier Tier, System.Int32 PublicationYear, System.Int32 EditionsSurvived, System.Double BaseAuthority, System.Double Weight, System.String Note)
+  method: Ckp.Core.Field.Attestation <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.Attestation other)
+  method: System.Void Deconstruct(out System.String BookId, out System.String ClaimId, out Ckp.Core.Claims.Tier Tier, out System.Int32 PublicationYear, out System.Int32 EditionsSurvived, out System.Double BaseAuthority, out System.Double Weight, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Claims.Tier Tier { get; init }
+  property: System.Double BaseAuthority { get; init }
+  property: System.Double Weight { get; init }
+  property: System.Int32 EditionsSurvived { get; init }
+  property: System.Int32 PublicationYear { get; init }
+  property: System.String BookId { get; init }
+  property: System.String ClaimId { get; init }
+  property: System.String Note { get; init }
+
+sealed class Ckp.Core.Field.CanonicalClaim
+  ctor: (System.String CanonicalId, Ckp.Core.Field.ClaimStatus Status, System.String Statement, Ckp.Core.Claims.Tier ConsensusTier, Ckp.Core.Field.ConfidenceScore Confidence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> Attestations, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> VocabularyMap, System.Collections.Generic.IReadOnlyList<System.String> T0Constraints, Ckp.Core.Field.TurbulenceFlag Turbulence, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.DivergentBranch> Branches)
+  method: Ckp.Core.Field.CanonicalClaim <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.CanonicalClaim other)
+  method: System.Void Deconstruct(out System.String CanonicalId, out Ckp.Core.Field.ClaimStatus Status, out System.String Statement, out Ckp.Core.Claims.Tier ConsensusTier, out Ckp.Core.Field.ConfidenceScore Confidence, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> Attestations, out System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> VocabularyMap, out System.Collections.Generic.IReadOnlyList<System.String> T0Constraints, out Ckp.Core.Field.TurbulenceFlag Turbulence, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.DivergentBranch> Branches)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Claims.Tier ConsensusTier { get; init }
+  property: Ckp.Core.Field.ClaimStatus Status { get; init }
+  property: Ckp.Core.Field.ConfidenceScore Confidence { get; init }
+  property: Ckp.Core.Field.TurbulenceFlag Turbulence { get; init }
+  property: System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> VocabularyMap { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> Attestations { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.DivergentBranch> Branches { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> T0Constraints { get; init }
+  property: System.String CanonicalId { get; init }
+  property: System.String Statement { get; init }
+
+enum Ckp.Core.Field.ClaimStatus
+  field: System.Int32 value__
+  field: const Ckp.Core.Field.ClaimStatus Converged
+  field: const Ckp.Core.Field.ClaimStatus Divergent
+  field: const Ckp.Core.Field.ClaimStatus Frontier
+
+sealed class Ckp.Core.Field.CompilationResult
+  ctor: (Ckp.Core.Field.FieldPackage Package, System.Int32 AutoMergedCount, System.Int32 FrontierCount, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> ReviewNeeded)
+  method: Ckp.Core.Field.CompilationResult <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.CompilationResult other)
+  method: System.Void Deconstruct(out Ckp.Core.Field.FieldPackage Package, out System.Int32 AutoMergedCount, out System.Int32 FrontierCount, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> ReviewNeeded)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Field.FieldPackage Package { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> ReviewNeeded { get; init }
+  property: System.Int32 AutoMergedCount { get; init }
+  property: System.Int32 FrontierCount { get; init }
+
+sealed class Ckp.Core.Field.ConfidenceScore
+  ctor: (System.Double FinalValue, System.Double BaseAuthoritySum, System.Double DecayPenalty, System.Double SurvivalBonus)
+  method: Ckp.Core.Field.ConfidenceScore <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.ConfidenceScore other)
+  method: System.Void Deconstruct(out System.Double FinalValue, out System.Double BaseAuthoritySum, out System.Double DecayPenalty, out System.Double SurvivalBonus)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Double BaseAuthoritySum { get; init }
+  property: System.Double DecayPenalty { get; init }
+  property: System.Double FinalValue { get; init }
+  property: System.Double SurvivalBonus { get; init }
+
+static class Ckp.Core.Field.ConfidenceScoreCalculator
+  field: const System.Double DefaultAlpha
+  field: const System.Double DefaultLambda
+  method: static Ckp.Core.Field.ConfidenceScore ComputeScore(System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> attestations, System.Nullable<System.Int32> currentYear, System.Double lambda, System.Double alpha)
+  method: static Ckp.Core.Field.WeightBreakdown ComputeBreakdown(System.Double baseAuthority, System.Int32 publicationYear, System.Int32 currentYear, System.Int32 editionsSurvived, System.Double lambda, System.Double alpha)
+  method: static System.Double ComputeWeight(System.Double baseAuthority, System.Int32 publicationYear, System.Int32 currentYear, System.Int32 editionsSurvived, System.Double lambda, System.Double alpha)
+
+sealed class Ckp.Core.Field.DivergentBranch
+  ctor: (System.String Position, Ckp.Core.Claims.Tier Tier, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> Attestations)
+  method: Ckp.Core.Field.DivergentBranch <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.DivergentBranch other)
+  method: System.Void Deconstruct(out System.String Position, out Ckp.Core.Claims.Tier Tier, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> Attestations)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Claims.Tier Tier { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> Attestations { get; init }
+  property: System.String Position { get; init }
+
+sealed class Ckp.Core.Field.FieldPackage
+  ctor: (System.String FieldId, System.String Version, System.DateTimeOffset CompiledAt, System.Collections.Generic.IReadOnlyList<System.String> SourcePackages, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.CanonicalClaim> Claims, System.Double DecayLambda, System.Double SurvivalAlpha, System.Double TurbulenceTauBase)
+  method: Ckp.Core.Field.FieldPackage <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.FieldPackage other)
+  method: System.Void Deconstruct(out System.String FieldId, out System.String Version, out System.DateTimeOffset CompiledAt, out System.Collections.Generic.IReadOnlyList<System.String> SourcePackages, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.CanonicalClaim> Claims, out System.Double DecayLambda, out System.Double SurvivalAlpha, out System.Double TurbulenceTauBase)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.CanonicalClaim> Claims { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> SourcePackages { get; init }
+  property: System.DateTimeOffset CompiledAt { get; init }
+  property: System.Double DecayLambda { get; init }
+  property: System.Double SurvivalAlpha { get; init }
+  property: System.Double TurbulenceTauBase { get; init }
+  property: System.String FieldId { get; init }
+  property: System.String Version { get; init }
+
+static class Ckp.Core.Field.TurbulenceDetector
+  field: const System.Double DefaultTauBase
+  method: static Ckp.Core.Field.TurbulenceFlag Evaluate(Ckp.Core.Field.Attestation dissentingAttestation, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.Attestation> consensusAttestations, Ckp.Core.Claims.Tier consensusTier, System.Double tauBase)
+
+enum Ckp.Core.Field.TurbulenceDirection
+  field: System.Int32 value__
+  field: const Ckp.Core.Field.TurbulenceDirection Contradiction
+  field: const Ckp.Core.Field.TurbulenceDirection Demotion
+  field: const Ckp.Core.Field.TurbulenceDirection Promotion
+
+sealed class Ckp.Core.Field.TurbulenceFlag
+  ctor: (System.String TriggeredByBookId, Ckp.Core.Field.TurbulenceDirection Direction, System.Int32 TierDelta, System.String Note)
+  method: Ckp.Core.Field.TurbulenceFlag <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Field.TurbulenceFlag other)
+  method: System.Void Deconstruct(out System.String TriggeredByBookId, out Ckp.Core.Field.TurbulenceDirection Direction, out System.Int32 TierDelta, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Field.TurbulenceDirection Direction { get; init }
+  property: System.Int32 TierDelta { get; init }
+  property: System.String Note { get; init }
+  property: System.String TriggeredByBookId { get; init }
+
+struct Ckp.Core.Field.WeightBreakdown
+  ctor: (System.Double Total, System.Double BaseAuthority, System.Double DecayPenalty, System.Double SurvivalBonus)
+  method: System.Boolean Equals(Ckp.Core.Field.WeightBreakdown other)
+  method: System.Void Deconstruct(out System.Double Total, out System.Double BaseAuthority, out System.Double DecayPenalty, out System.Double SurvivalBonus)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Double BaseAuthority { get; init }
+  property: System.Double DecayPenalty { get; init }
+  property: System.Double SurvivalBonus { get; init }
+  property: System.Double Total { get; init }
+
+sealed class Ckp.Core.Manifest.BookMetadata
+  ctor: (System.String Key, System.String Title, System.Int32 Edition, System.Collections.Generic.IReadOnlyList<System.String> Authors, System.String Publisher, System.Int32 Year, System.String Isbn, System.String Language, System.Collections.Generic.IReadOnlyList<System.String> Domains)
+  method: Ckp.Core.Manifest.BookMetadata <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Manifest.BookMetadata other)
+  method: System.Void Deconstruct(out System.String Key, out System.String Title, out System.Int32 Edition, out System.Collections.Generic.IReadOnlyList<System.String> Authors, out System.String Publisher, out System.Int32 Year, out System.String Isbn, out System.String Language, out System.Collections.Generic.IReadOnlyList<System.String> Domains)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<System.String> Authors { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> Domains { get; init }
+  property: System.Int32 Edition { get; init }
+  property: System.Int32 Year { get; init }
+  property: System.String Isbn { get; init }
+  property: System.String Key { get; init }
+  property: System.String Language { get; init }
+  property: System.String Publisher { get; init }
+  property: System.String Title { get; init }
+
+sealed class Ckp.Core.Manifest.ContentFingerprint
+  ctor: (System.String Algorithm, System.Int32 ClaimCount, System.Int32 DomainCount, System.Int32 T1Count, System.Int32 T2Count, System.Int32 T3Count, System.Int32 T4Count, System.Int32 CitationCount, System.String Hash)
+  method: Ckp.Core.Manifest.ContentFingerprint <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Manifest.ContentFingerprint other)
+  method: System.Void Deconstruct(out System.String Algorithm, out System.Int32 ClaimCount, out System.Int32 DomainCount, out System.Int32 T1Count, out System.Int32 T2Count, out System.Int32 T3Count, out System.Int32 T4Count, out System.Int32 CitationCount, out System.String Hash)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Int32 CitationCount { get; init }
+  property: System.Int32 ClaimCount { get; init }
+  property: System.Int32 DomainCount { get; init }
+  property: System.Int32 T1Count { get; init }
+  property: System.Int32 T2Count { get; init }
+  property: System.Int32 T3Count { get; init }
+  property: System.Int32 T4Count { get; init }
+  property: System.String Algorithm { get; init }
+  property: System.String Hash { get; init }
+
+sealed class Ckp.Core.Manifest.PackageManifest
+  ctor: (System.String FormatVersion, System.Guid PackageId, System.DateTimeOffset CreatedAt, Ckp.Core.Manifest.PackageSignature Signature, Ckp.Core.Manifest.BookMetadata Book, Ckp.Core.Manifest.ContentFingerprint ContentFingerprint, Ckp.Core.Manifest.T0RegistryReference T0Registry, System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> Alignments)
+  method: Ckp.Core.Manifest.PackageManifest <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Manifest.PackageManifest other)
+  method: System.Void Deconstruct(out System.String FormatVersion, out System.Guid PackageId, out System.DateTimeOffset CreatedAt, out Ckp.Core.Manifest.PackageSignature Signature, out Ckp.Core.Manifest.BookMetadata Book, out Ckp.Core.Manifest.ContentFingerprint ContentFingerprint, out Ckp.Core.Manifest.T0RegistryReference T0Registry, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> Alignments)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Manifest.BookMetadata Book { get; init }
+  property: Ckp.Core.Manifest.ContentFingerprint ContentFingerprint { get; init }
+  property: Ckp.Core.Manifest.PackageSignature Signature { get; init }
+  property: Ckp.Core.Manifest.T0RegistryReference T0Registry { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> Alignments { get; init }
+  property: System.DateTimeOffset CreatedAt { get; init }
+  property: System.Guid PackageId { get; init }
+  property: System.String FormatVersion { get; init }
+
+static class Ckp.Core.Manifest.PackageManifestConstruction
+  method: static Ckp.Core.Manifest.PackageManifest CreateNew(Ckp.Core.Manifest.BookMetadata book, Ckp.Core.Manifest.ContentFingerprint fingerprint, Ckp.Core.Manifest.T0RegistryReference t0Registry, System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> alignments, System.TimeProvider timeProvider, System.Func<System.Guid> idFactory)
+  method: static Ckp.Core.Manifest.PackageManifest Restore(System.String formatVersion, System.Guid packageId, System.DateTimeOffset createdAt, Ckp.Core.Manifest.PackageSignature signature, Ckp.Core.Manifest.BookMetadata book, Ckp.Core.Manifest.ContentFingerprint contentFingerprint, Ckp.Core.Manifest.T0RegistryReference t0Registry, System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> alignments)
+  nested: Ckp.Core.Manifest.<G>$9D1D4C734839119683F31383BA000BF2
+
+sealed class Ckp.Core.Manifest.PackageManifestConstruction+<G>$9D1D4C734839119683F31383BA000BF2
+  method: static Ckp.Core.Manifest.PackageManifest CreateNew(Ckp.Core.Manifest.BookMetadata book, Ckp.Core.Manifest.ContentFingerprint fingerprint, Ckp.Core.Manifest.T0RegistryReference t0Registry, System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> alignments, System.TimeProvider timeProvider, System.Func<System.Guid> idFactory)
+  method: static Ckp.Core.Manifest.PackageManifest Restore(System.String formatVersion, System.Guid packageId, System.DateTimeOffset createdAt, Ckp.Core.Manifest.PackageSignature signature, Ckp.Core.Manifest.BookMetadata book, Ckp.Core.Manifest.ContentFingerprint contentFingerprint, Ckp.Core.Manifest.T0RegistryReference t0Registry, System.Collections.Generic.IReadOnlyList<Ckp.Core.Alignment.AlignmentSummary> alignments)
+  nested: Ckp.Core.Manifest.<M>$2C7517C98DF06052FE8283587F4CA875
+
+static class Ckp.Core.Manifest.PackageManifestConstruction+<G>$9D1D4C734839119683F31383BA000BF2+<M>$2C7517C98DF06052FE8283587F4CA875
+
+sealed class Ckp.Core.Manifest.PackageSignature
+  ctor: (System.String Algorithm, System.String PublicKey, System.String Signature, Ckp.Core.Manifest.SignatureSource Source)
+  method: Ckp.Core.Manifest.PackageSignature <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Manifest.PackageSignature other)
+  method: System.Void Deconstruct(out System.String Algorithm, out System.String PublicKey, out System.String Signature, out Ckp.Core.Manifest.SignatureSource Source)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Manifest.SignatureSource Source { get; init }
+  property: System.String Algorithm { get; init }
+  property: System.String PublicKey { get; init }
+  property: System.String Signature { get; init }
+
+enum Ckp.Core.Manifest.SignatureSource
+  field: System.Int32 value__
+  field: const Ckp.Core.Manifest.SignatureSource AiAssisted
+  field: const Ckp.Core.Manifest.SignatureSource Author
+  field: const Ckp.Core.Manifest.SignatureSource Community
+  field: const Ckp.Core.Manifest.SignatureSource Publisher
+  field: const Ckp.Core.Manifest.SignatureSource Scholar
+
+sealed class Ckp.Core.Manifest.T0RegistryEntry
+  ctor: (System.String Id, System.String Statement, System.String Domain, System.String SubDomain, System.String FormalExpression, System.String Authority, System.String Version, System.String Constrains)
+  method: Ckp.Core.Manifest.T0RegistryEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Manifest.T0RegistryEntry other)
+  method: System.Void Deconstruct(out System.String Id, out System.String Statement, out System.String Domain, out System.String SubDomain, out System.String FormalExpression, out System.String Authority, out System.String Version, out System.String Constrains)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.String Authority { get; init }
+  property: System.String Constrains { get; init }
+  property: System.String Domain { get; init }
+  property: System.String FormalExpression { get; init }
+  property: System.String Id { get; init }
+  property: System.String Statement { get; init }
+  property: System.String SubDomain { get; init }
+  property: System.String Version { get; init }
+
+sealed class Ckp.Core.Manifest.T0RegistryReference
+  ctor: (System.String Version, System.String Source, System.Int32 ConstraintsReferenced)
+  method: Ckp.Core.Manifest.T0RegistryReference <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Manifest.T0RegistryReference other)
+  method: System.Void Deconstruct(out System.String Version, out System.String Source, out System.Int32 ConstraintsReferenced)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Int32 ConstraintsReferenced { get; init }
+  property: System.String Source { get; init }
+  property: System.String Version { get; init }
+
+sealed class Ckp.Core.Structure.ChapterInfo
+  ctor: (System.Int32 Number, System.String Title, System.Int32 ClaimCount, System.Collections.Generic.IReadOnlyList<System.String> Domains)
+  method: Ckp.Core.Structure.ChapterInfo <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Structure.ChapterInfo other)
+  method: System.Void Deconstruct(out System.Int32 Number, out System.String Title, out System.Int32 ClaimCount, out System.Collections.Generic.IReadOnlyList<System.String> Domains)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<System.String> Domains { get; init }
+  property: System.Int32 ClaimCount { get; init }
+  property: System.Int32 Number { get; init }
+  property: System.String Title { get; init }
+
+sealed class Ckp.Core.Structure.DomainInfo
+  ctor: (System.String Name, System.Int32 ClaimCount, System.Int32 T1Count, System.Int32 T2Count, System.Int32 T3Count, System.Int32 T4Count)
+  method: Ckp.Core.Structure.DomainInfo <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Structure.DomainInfo other)
+  method: System.Void Deconstruct(out System.String Name, out System.Int32 ClaimCount, out System.Int32 T1Count, out System.Int32 T2Count, out System.Int32 T3Count, out System.Int32 T4Count)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Int32 ClaimCount { get; init }
+  property: System.Int32 T1Count { get; init }
+  property: System.Int32 T2Count { get; init }
+  property: System.Int32 T3Count { get; init }
+  property: System.Int32 T4Count { get; init }
+  property: System.String Name { get; init }
+
+sealed class Ckp.Core.Structure.EditionInfo
+  ctor: (System.Int32 Edition, System.Int32 Year, System.String Isbn, System.String Editor, System.String Note)
+  method: Ckp.Core.Structure.EditionInfo <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Structure.EditionInfo other)
+  method: System.Void Deconstruct(out System.Int32 Edition, out System.Int32 Year, out System.String Isbn, out System.String Editor, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Int32 Edition { get; init }
+  property: System.Int32 Year { get; init }
+  property: System.String Editor { get; init }
+  property: System.String Isbn { get; init }
+  property: System.String Note { get; init }
+
+sealed class Ckp.Core.Structure.GlossaryEntry
+  ctor: (System.String BookTerm, System.String StandardTerm, System.String MeshTerm, System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> EquivalentsInOtherBooks, System.String Note)
+  method: Ckp.Core.Structure.GlossaryEntry <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Structure.GlossaryEntry other)
+  method: System.Void Deconstruct(out System.String BookTerm, out System.String StandardTerm, out System.String MeshTerm, out System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> EquivalentsInOtherBooks, out System.String Note)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyDictionary<System.String, System.String> EquivalentsInOtherBooks { get; init }
+  property: System.String BookTerm { get; init }
+  property: System.String MeshTerm { get; init }
+  property: System.String Note { get; init }
+  property: System.String StandardTerm { get; init }
+
+sealed class Ckp.Core.Validation.CkpValidationReport
+  ctor: (System.Boolean IsValid, System.Collections.Generic.IReadOnlyList<Ckp.Core.Validation.ClaimValidationDiagnostic> Diagnostics)
+  method: Ckp.Core.Validation.CkpValidationReport <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Validation.CkpValidationReport other)
+  method: System.Void Deconstruct(out System.Boolean IsValid, out System.Collections.Generic.IReadOnlyList<Ckp.Core.Validation.ClaimValidationDiagnostic> Diagnostics)
+  method: static Ckp.Core.Validation.CkpValidationReport Valid()
+  method: static Ckp.Core.Validation.CkpValidationReport WithDiagnostics(System.Collections.Generic.IReadOnlyList<Ckp.Core.Validation.ClaimValidationDiagnostic> diagnostics)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Boolean IsValid { get; init }
+  property: System.Collections.Generic.IReadOnlyList<Ckp.Core.Validation.ClaimValidationDiagnostic> Diagnostics { get; init }
+  property: System.Int32 ErrorCount { get }
+  property: System.Int32 NoticeCount { get }
+  property: System.Int32 WarningCount { get }
+
+sealed class Ckp.Core.Validation.ClaimValidationDiagnostic
+  ctor: (System.String RuleId, Ckp.Core.Validation.ClaimValidationSeverity Severity, System.String ClaimId, System.String Message)
+  method: Ckp.Core.Validation.ClaimValidationDiagnostic <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Validation.ClaimValidationDiagnostic other)
+  method: System.Void Deconstruct(out System.String RuleId, out Ckp.Core.Validation.ClaimValidationSeverity Severity, out System.String ClaimId, out System.String Message)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Validation.ClaimValidationSeverity Severity { get; init }
+  property: System.String ClaimId { get; init }
+  property: System.String Message { get; init }
+  property: System.String RuleId { get; init }
+
+enum Ckp.Core.Validation.ClaimValidationSeverity
+  field: System.Int32 value__
+  field: const Ckp.Core.Validation.ClaimValidationSeverity Error
+  field: const Ckp.Core.Validation.ClaimValidationSeverity Notice
+  field: const Ckp.Core.Validation.ClaimValidationSeverity Warning
+
+enum Ckp.Core.Validation.ExtractionPriority
+  field: System.Int32 value__
+  field: const Ckp.Core.Validation.ExtractionPriority Anchoring
+  field: const Ckp.Core.Validation.ExtractionPriority AncientObservation
+  field: const Ckp.Core.Validation.ExtractionPriority Contested
+  field: const Ckp.Core.Validation.ExtractionPriority Epidemiological
+  field: const Ckp.Core.Validation.ExtractionPriority Mechanistic
+  field: const Ckp.Core.Validation.ExtractionPriority Quantitative
+
+sealed class Ckp.Core.Validation.ExtractionVocabulary
+  ctor: (System.Collections.Generic.IReadOnlySet<System.String> KnownDomains, System.Collections.Generic.IReadOnlyList<System.String> MechanisticKeywords, System.Collections.Generic.IReadOnlyList<System.String> HedgingMarkers)
+  method: Ckp.Core.Validation.ExtractionVocabulary <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Validation.ExtractionVocabulary other)
+  method: System.Void Deconstruct(out System.Collections.Generic.IReadOnlySet<System.String> KnownDomains, out System.Collections.Generic.IReadOnlyList<System.String> MechanisticKeywords, out System.Collections.Generic.IReadOnlyList<System.String> HedgingMarkers)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.Core.Validation.ExtractionVocabulary Empty { get }
+  property: System.Collections.Generic.IReadOnlyList<System.String> HedgingMarkers { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> MechanisticKeywords { get; init }
+  property: System.Collections.Generic.IReadOnlySet<System.String> KnownDomains { get; init }
+
+interface Ckp.Core.Validation.IExtractionRule
+  method: virtual System.Collections.Generic.IEnumerable<Ckp.Core.Validation.ClaimValidationDiagnostic> Validate(Ckp.Core.Claims.PackageClaim claim, System.Nullable<Ckp.Core.Validation.ExtractionPriority> priority)
+
+sealed class Ckp.Core.Validation.VocabularyBridge
+  ctor: (System.Collections.Generic.IReadOnlyList<System.String> SourceTerms, System.Collections.Generic.IReadOnlyList<System.String> TargetTerms, System.String SharedConcept)
+  method: Ckp.Core.Validation.VocabularyBridge <Clone>$()
+  method: System.Boolean Equals(Ckp.Core.Validation.VocabularyBridge other)
+  method: System.Void Deconstruct(out System.Collections.Generic.IReadOnlyList<System.String> SourceTerms, out System.Collections.Generic.IReadOnlyList<System.String> TargetTerms, out System.String SharedConcept)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: System.Collections.Generic.IReadOnlyList<System.String> SourceTerms { get; init }
+  property: System.Collections.Generic.IReadOnlyList<System.String> TargetTerms { get; init }
+  property: System.String SharedConcept { get; init }
+

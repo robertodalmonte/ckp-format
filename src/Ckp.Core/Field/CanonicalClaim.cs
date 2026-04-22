@@ -14,6 +14,11 @@ namespace Ckp.Core.Field;
 /// <param name="T0Constraints">Inherited T0 axiom URNs. Back-propagated from any attesting book.</param>
 /// <param name="Turbulence">Non-null when a recent authoritative source diverges from consensus.</param>
 /// <param name="Branches">Populated only when Status is Divergent. Null otherwise.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record CanonicalClaim(
     string CanonicalId,
     ClaimStatus Status,

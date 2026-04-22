@@ -6,6 +6,11 @@ using Ckp.Core;
 /// Reads a .ckp (Consilience Knowledge Package) ZIP archive and hydrates the
 /// full <see cref="CkpPackage"/> domain aggregate.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Any downstream application that loads a CKP
+/// package — validators, viewers, compilers, CLI tools — goes through this interface.
+/// Consilience is the flagship consumer.
+/// </remarks>
 public interface ICkpPackageReader
 {
     /// <summary>

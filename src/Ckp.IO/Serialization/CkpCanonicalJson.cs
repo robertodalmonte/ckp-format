@@ -21,6 +21,11 @@ using Ckp.Core;
 /// RFC 8785-compliant for this payload.
 /// </para>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users and the Ckp.Signing package. Produces
+/// RFC 8785 canonical JSON for the manifest — the exact byte form the signer signs
+/// and the verifier rehashes.
+/// </remarks>
 public static class CkpCanonicalJson
 {
     private static readonly JsonSerializerOptions TreeOptions = new()

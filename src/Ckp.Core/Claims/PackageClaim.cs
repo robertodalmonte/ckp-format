@@ -21,6 +21,10 @@ namespace Ckp.Core.Claims;
 /// <param name="SinceEdition">The edition in which this claim first appeared.</param>
 /// <param name="TierHistory">Edition-by-edition tier assignment trail.</param>
 /// <param name="Hash">SHA-256 content hash of the statement for integrity verification.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Core CKP wire-format type — serialized into
+/// <c>claims/claims.json</c> and read back by every CKP consumer.
+/// </remarks>
 public sealed record PackageClaim(
     string Id,
     string Statement,

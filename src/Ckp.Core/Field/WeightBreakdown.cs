@@ -14,6 +14,11 @@ namespace Ckp.Core.Field;
 /// <param name="BaseAuthority">The book's base authority, pre-decay, pre-bonus.</param>
 /// <param name="DecayPenalty">Weight lost to exponential decay (always ≥ 0).</param>
 /// <param name="SurvivalBonus">Weight gained from edition survival (always ≥ 0).</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public readonly record struct WeightBreakdown(
     double Total,
     double BaseAuthority,

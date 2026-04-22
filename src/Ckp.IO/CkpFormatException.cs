@@ -15,6 +15,11 @@ namespace Ckp.IO;
 ///   <item>A required JSON entry (<c>manifest.json</c>, etc.) fails to parse.</item>
 /// </list>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users catching it around read/write calls. Raised
+/// by <see cref="CkpPackageReader"/> and <see cref="CkpPackageWriter"/>; carries the
+/// entry name that failed in <see cref="EntryName"/>.
+/// </remarks>
 public sealed class CkpFormatException : Exception
 {
     public CkpFormatException(string message, string? entryName = null, Exception? innerException = null)

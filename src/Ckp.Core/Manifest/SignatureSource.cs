@@ -3,6 +3,11 @@ namespace Ckp.Core.Manifest;
 /// <summary>
 /// Trust tier of the entity that signed a .ckp package, parallel to ALiveBook's ContributorType.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum SignatureSource
 {
     /// <summary>Signed by the book's publisher. Highest trust.</summary>

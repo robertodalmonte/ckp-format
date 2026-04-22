@@ -1,0 +1,15 @@
+sealed class Ckp.Signing.CkpSigner
+  ctor: ()
+  method: Ckp.Core.Manifest.PackageManifest SignManifest(Ckp.Core.Manifest.PackageManifest manifest, System.ReadOnlySpan<System.Byte> privateKey, Ckp.Core.Manifest.SignatureSource source)
+  method: Ckp.Core.Manifest.PackageSignature Sign(System.ReadOnlySpan<System.Byte> manifestJson, System.ReadOnlySpan<System.Byte> privateKeyBytes, Ckp.Core.Manifest.SignatureSource source)
+  method: System.Boolean Verify(System.ReadOnlySpan<System.Byte> manifestJson, Ckp.Core.Manifest.PackageSignature signature)
+  method: System.Boolean VerifyManifest(Ckp.Core.Manifest.PackageManifest manifest)
+  method: System.ValueTuple<System.Byte[], System.Byte[]> GenerateKeyPair()
+
+interface Ckp.Signing.ICkpSigner
+  method: virtual Ckp.Core.Manifest.PackageManifest SignManifest(Ckp.Core.Manifest.PackageManifest manifest, System.ReadOnlySpan<System.Byte> privateKey, Ckp.Core.Manifest.SignatureSource source)
+  method: virtual Ckp.Core.Manifest.PackageSignature Sign(System.ReadOnlySpan<System.Byte> manifestJson, System.ReadOnlySpan<System.Byte> privateKey, Ckp.Core.Manifest.SignatureSource source)
+  method: virtual System.Boolean Verify(System.ReadOnlySpan<System.Byte> manifestJson, Ckp.Core.Manifest.PackageSignature signature)
+  method: virtual System.Boolean VerifyManifest(Ckp.Core.Manifest.PackageManifest manifest)
+  method: virtual System.ValueTuple<System.Byte[], System.Byte[]> GenerateKeyPair()
+

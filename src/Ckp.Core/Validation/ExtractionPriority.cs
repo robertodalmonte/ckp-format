@@ -5,6 +5,11 @@ namespace Ckp.Core.Validation;
 /// validation rules fire (e.g., P0/P1 claims require observables). Optional on claims —
 /// when absent, priority-conditional rules are skipped.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum ExtractionPriority
 {
     /// <summary>P0 — Mechanistic claims with named molecules/pathways. Bridge points across books.</summary>

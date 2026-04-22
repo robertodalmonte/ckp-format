@@ -5,6 +5,11 @@ namespace Ckp.Core.Validation;
 /// Loaded from external JSON so the validator can be configured for any scientific discipline
 /// without changing code.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record ExtractionVocabulary(
     IReadOnlySet<string> KnownDomains,
     IReadOnlyList<string> MechanisticKeywords,

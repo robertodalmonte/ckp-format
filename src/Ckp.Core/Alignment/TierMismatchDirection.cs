@@ -3,6 +3,11 @@ namespace Ckp.Core.Alignment;
 /// <summary>
 /// Direction of a tier mismatch between aligned claims in two books.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum TierMismatchDirection
 {
     /// <summary>Both books agree on the tier. Strong consensus signal.</summary>

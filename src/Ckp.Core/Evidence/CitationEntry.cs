@@ -10,6 +10,11 @@ namespace Ckp.Core.Evidence;
 /// <param name="Year">Publication year.</param>
 /// <param name="Journal">Journal name.</param>
 /// <param name="ReferencedBy">Claim IDs that cite this source.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record CitationEntry(
     string Ref,
     string? Title,

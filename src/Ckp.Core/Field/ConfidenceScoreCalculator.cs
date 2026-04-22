@@ -13,6 +13,10 @@ namespace Ckp.Core.Field;
 /// formula anywhere in the codebase.
 /// </para>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Pure static helper — no state, no I/O.
+/// Safe to call from any thread; commonly used by transpilers, validators, and tests.
+/// </remarks>
 public static class ConfidenceScoreCalculator
 {
     /// <summary>Default decay rate constant. Half-life ≈ 12 years for medical/biological fields.</summary>

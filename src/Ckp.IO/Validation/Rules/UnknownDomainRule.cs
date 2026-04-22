@@ -6,6 +6,11 @@ using Ckp.Core;
 /// SEM3: Flags domain strings not in the controlled vocabulary.
 /// Vocabulary is loaded from external JSON — no hardcoded domain list.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users constructing <see cref="CkpExtractionValidator"/>
+/// manually (e.g., tests). In production, these rules are wired in by the validator's
+/// constructor and need not be instantiated directly.
+/// </remarks>
 public sealed class UnknownDomainRule : IExtractionRule
 {
     private readonly IReadOnlySet<string> _knownDomains;

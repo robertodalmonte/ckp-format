@@ -6,7 +6,15 @@ using Ckp.Core;
 
 /// <summary>
 /// Reads a .ckp ZIP archive and hydrates the full <see cref="CkpPackage"/> domain aggregate.
+/// Throws <see cref="CkpFormatException"/> on malformed input. The
+/// <see cref="ReadAsync(Stream, CkpReadOptions, CancellationToken)"/> overload accepts a
+/// <see cref="CkpReadOptions"/> to opt into S3 strict-mode verification (signature,
+/// content-hash, pinned public key).
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Concrete implementation of
+/// <see cref="ICkpPackageReader"/>; prefer the interface in DI.
+/// </remarks>
 public sealed class CkpPackageReader : ICkpPackageReader
 {
     /// <summary>

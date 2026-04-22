@@ -8,6 +8,11 @@ namespace Ckp.Core.Alignment;
 /// <param name="SourceTier">Tier in the source book.</param>
 /// <param name="TargetTier">Tier in the target book.</param>
 /// <param name="Direction">Which book considers the claim more established.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record TierMismatch(
     Tier SourceTier,
     Tier TargetTier,

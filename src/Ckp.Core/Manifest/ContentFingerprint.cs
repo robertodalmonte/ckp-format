@@ -23,6 +23,11 @@ namespace Ckp.Core.Manifest;
 /// legacy packages. Verified by a reader's strict mode (S3). Signed transitively
 /// because it sits inside the manifest, which <see cref="PackageSignature"/> covers.
 /// </param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record ContentFingerprint(
     string Algorithm,
     int ClaimCount,

@@ -8,6 +8,11 @@ namespace Ckp.Core.Manifest;
 /// <param name="Version">Registry version (e.g., "2026.1").</param>
 /// <param name="Source">URI of the registry source.</param>
 /// <param name="ConstraintsReferenced">Number of T0 constraints referenced by claims in this package.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record T0RegistryReference(
     string Version,
     string? Source,

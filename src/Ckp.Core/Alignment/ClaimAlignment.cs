@@ -13,6 +13,11 @@ namespace Ckp.Core.Alignment;
 /// <param name="AlignedBy">Who or what produced this alignment (e.g., "consilience-auto").</param>
 /// <param name="ReviewedBy">Human reviewer, or null if unreviewed.</param>
 /// <param name="Note">Optional annotation, especially for unmatched alignments.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record ClaimAlignment(
     string SourceClaim,
     string? TargetClaim,

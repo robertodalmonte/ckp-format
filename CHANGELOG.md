@@ -11,6 +11,32 @@ stamped `1.1` (documentation alignment, no wire break).
 Quality-raising pass — reads as four phases inside a single pre-release cycle.
 No wire-format break; `formatVersion` stays `"1.0"`.
 
+### Tail — P2/P3 closure (2026-04-22)
+
+- **B4** Public-API snapshot: `api/Ckp.Core.txt`, `api/Ckp.IO.txt`,
+  `api/Ckp.Signing.txt` pin the shipping public surface. Regenerate with
+  `pwsh ./scripts/api-snapshot.ps1`. `PublicApiSnapshotTests` fails on any
+  drift so an unintentional API change cannot slip through review.
+- **B5** Every public type in `Ckp.Core`, `Ckp.IO`, `Ckp.Signing`,
+  `Ckp.Transpiler`, and `Ckp.Epub` now carries an XML `<remarks>` block
+  naming its intended consumer (library user / CLI-facing DTO / internal with
+  `InternalsVisibleTo`). Locks the visibility rationale into the source.
+- **T8** `CkpSigningExtendedCoverageTests`: Ed25519 key-derivation
+  determinism (same private key → same embedded public key; RFC 8032 signing
+  is bit-identical across calls), every `SignatureSource` round-trips through
+  write → read → verify, and single-byte tamper in `claims/claims.json` is
+  caught by both the content-hash recompute and the S3 strict reader.
+- **S6** `CkpSignerToStringLeakTests`: the `ToString()` of
+  `PackageSignature`, `PackageManifest`, and the tuple returned by
+  `GenerateKeyPair` is asserted to never contain the private key bytes in
+  hex or base64 encodings.
+- **S7** `GenerateKeyPair` and `SignManifest` XML docs now carry explicit
+  lifetime guidance: callers should wrap the returned `PrivateKey` in a
+  `try/finally` and call `CryptographicOperations.ZeroMemory(privateKey)`
+  on exit. A future breaking change may swap the `byte[]` return for an
+  `IMemoryOwner<byte>` or span callback; the `ReadOnlySpan<byte>` parameter
+  shape on `Sign*` already supports that migration.
+
 ### Phase 4 — performance, architecture polish, docs (2026-04-22)
 
 - **P1** Added `Ckp.Benchmarks` project (BenchmarkDotNet 0.15) with fixtures

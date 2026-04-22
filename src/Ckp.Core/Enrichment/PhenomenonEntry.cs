@@ -8,6 +8,11 @@ namespace Ckp.Core.Enrichment;
 /// <param name="Description">Human-readable summary.</param>
 /// <param name="ClaimIds">IDs of claims in this cluster.</param>
 /// <param name="SharedConcept">The concept that ties the claims together.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record PhenomenonEntry(
     string Name,
     string Description,

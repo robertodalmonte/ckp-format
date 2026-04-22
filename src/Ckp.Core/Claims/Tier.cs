@@ -9,6 +9,11 @@ namespace Ckp.Core.Claims;
 /// with no naming policy — the spec form is preserved byte-for-byte.
 /// </para>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum Tier
 {
     T1 = 1,

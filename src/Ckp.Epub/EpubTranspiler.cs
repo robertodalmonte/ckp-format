@@ -7,6 +7,11 @@ using Ckp.Core;
 /// and supplementary chapter text — but zero claims. Claims require downstream enrichment
 /// (human annotation or LLM-assisted extraction).
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> the <c>Ckp.Epub.Cli</c> tool and any pipeline that bootstraps
+/// a new CKP package from an existing ePub. Library users who already own structured
+/// book data should build a <see cref="CkpPackage"/> directly instead.
+/// </remarks>
 public sealed class EpubTranspiler
 {
     private readonly string _epubPath;
@@ -73,6 +78,11 @@ public sealed class EpubTranspiler
 /// <summary>
 /// Book metadata collected from CLI arguments.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> the <c>Ckp.Epub.Cli</c> argument-parsing layer and callers
+/// constructing an <see cref="EpubTranspiler"/> directly. This is an input DTO, not part
+/// of the wire format — the transpiler copies the values into <see cref="BookMetadata"/>.
+/// </remarks>
 public sealed record BookMetadataArgs(
     string Key,
     string Title,

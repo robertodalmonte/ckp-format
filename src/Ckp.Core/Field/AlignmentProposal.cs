@@ -11,6 +11,11 @@ namespace Ckp.Core.Field;
 /// <param name="Reason">Human-readable explanation of why these claims align.</param>
 /// <param name="ProposedCanonicalId">Suggested canonical URN for the merged claim.</param>
 /// <param name="IsContradiction">True if the claims reach opposite conclusions.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record AlignmentProposal(
     string SourceClaimId,
     string TargetClaimId,

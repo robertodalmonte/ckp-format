@@ -1,0 +1,86 @@
+sealed class Ckp.IO.AlignmentProposer
+  ctor: ()
+  method: System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> Propose(Ckp.Core.CkpPackage source, Ckp.Core.CkpPackage target)
+  method: static System.Double ScorePair(Ckp.Core.Claims.PackageClaim source, Ckp.Core.Claims.PackageClaim target)
+
+static class Ckp.IO.CkpCanonicalJson
+  method: static System.Byte[] Serialize(Ckp.Core.Manifest.PackageManifest manifest)
+  method: static System.Byte[] SerializeForSigning(Ckp.Core.Manifest.PackageManifest manifest)
+
+static class Ckp.IO.CkpContentHash
+  field: const System.String Prefix
+  method: static System.String Compute(System.Collections.Generic.IEnumerable<System.ValueTuple<System.String, System.Byte[]>> entries)
+  method: static System.Threading.Tasks.Task<System.String> ComputeForPackageAsync(Ckp.Core.CkpPackage package, System.Threading.CancellationToken cancellationToken)
+
+sealed class Ckp.IO.CkpExtractionValidator
+  ctor: (Ckp.Core.Validation.ExtractionVocabulary vocabulary)
+  method: Ckp.Core.Validation.CkpValidationReport Validate(Ckp.Core.CkpPackage package, System.Collections.Generic.IReadOnlyDictionary<System.String, Ckp.Core.Validation.ExtractionPriority> priorities)
+
+sealed class Ckp.IO.CkpFormatException
+  ctor: (System.String message, System.String entryName, System.Exception innerException)
+  property: System.String EntryName { get }
+
+sealed class Ckp.IO.CkpPackageReader
+  ctor: ()
+  field: static readonly System.Collections.Generic.IReadOnlySet<System.String> SupportedFormatVersions
+  method: System.Threading.Tasks.Task<Ckp.Core.CkpPackage> ReadAsync(System.IO.Stream stream, Ckp.IO.CkpReadOptions options, System.Threading.CancellationToken cancellationToken)
+  method: System.Threading.Tasks.Task<Ckp.Core.CkpPackage> ReadAsync(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken)
+
+sealed class Ckp.IO.CkpPackageWriter
+  ctor: ()
+  method: System.Threading.Tasks.Task WriteAsync(Ckp.Core.CkpPackage package, System.IO.Stream stream, System.Threading.CancellationToken cancellationToken)
+
+sealed class Ckp.IO.CkpReadOptions
+  ctor: ()
+  method: Ckp.IO.CkpReadOptions <Clone>$()
+  method: System.Boolean Equals(Ckp.IO.CkpReadOptions other)
+  method: virtual System.Boolean Equals(System.Object obj)
+  method: virtual System.Int32 GetHashCode()
+  method: virtual System.String ToString()
+  property: Ckp.IO.CkpReadOptions Default { get }
+  property: System.Boolean RequireContentHash { get; init }
+  property: System.Boolean RequireSignature { get; init }
+  property: System.Boolean VerifySignature { get; init }
+  property: System.Func<Ckp.Core.Manifest.PackageManifest, System.Boolean> SignatureVerifier { get; init }
+  property: System.String ExpectedPublicKey { get; init }
+
+sealed class Ckp.IO.FieldPackageCompiler
+  ctor: ()
+  method: Ckp.Core.Field.CompilationResult Compile(System.String fieldId, System.String version, System.Collections.Generic.IReadOnlyList<Ckp.Core.CkpPackage> packages, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> proposals, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Double> bookAuthorities, System.Double autoMergeThreshold)
+
+interface Ckp.IO.IAlignmentProposer
+  method: virtual System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> Propose(Ckp.Core.CkpPackage source, Ckp.Core.CkpPackage target)
+
+interface Ckp.IO.ICkpExtractionValidator
+  method: virtual Ckp.Core.Validation.CkpValidationReport Validate(Ckp.Core.CkpPackage package, System.Collections.Generic.IReadOnlyDictionary<System.String, Ckp.Core.Validation.ExtractionPriority> priorities)
+
+interface Ckp.IO.ICkpPackageReader
+  method: virtual System.Threading.Tasks.Task<Ckp.Core.CkpPackage> ReadAsync(System.IO.Stream stream, Ckp.IO.CkpReadOptions options, System.Threading.CancellationToken cancellationToken)
+  method: virtual System.Threading.Tasks.Task<Ckp.Core.CkpPackage> ReadAsync(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken)
+
+interface Ckp.IO.ICkpPackageWriter
+  method: virtual System.Threading.Tasks.Task WriteAsync(Ckp.Core.CkpPackage package, System.IO.Stream stream, System.Threading.CancellationToken cancellationToken)
+
+interface Ckp.IO.IFieldPackageCompiler
+  method: virtual Ckp.Core.Field.CompilationResult Compile(System.String fieldId, System.String version, System.Collections.Generic.IReadOnlyList<Ckp.Core.CkpPackage> packages, System.Collections.Generic.IReadOnlyList<Ckp.Core.Field.AlignmentProposal> proposals, System.Collections.Generic.IReadOnlyDictionary<System.String, System.Double> bookAuthorities, System.Double autoMergeThreshold)
+
+sealed class Ckp.IO.Rules.CompoundStatementRule
+  ctor: ()
+  method: System.Collections.Generic.IEnumerable<Ckp.Core.Validation.ClaimValidationDiagnostic> Validate(Ckp.Core.Claims.PackageClaim claim, System.Nullable<Ckp.Core.Validation.ExtractionPriority> priority)
+
+sealed class Ckp.IO.Rules.EpistemicTierMismatchRule
+  ctor: (System.Collections.Generic.IReadOnlyList<System.String> hedgingMarkers)
+  method: System.Collections.Generic.IEnumerable<Ckp.Core.Validation.ClaimValidationDiagnostic> Validate(Ckp.Core.Claims.PackageClaim claim, System.Nullable<Ckp.Core.Validation.ExtractionPriority> priority)
+
+sealed class Ckp.IO.Rules.MechanisticObservableRule
+  ctor: (System.Collections.Generic.IReadOnlyList<System.String> mechanisticKeywords)
+  method: System.Collections.Generic.IEnumerable<Ckp.Core.Validation.ClaimValidationDiagnostic> Validate(Ckp.Core.Claims.PackageClaim claim, System.Nullable<Ckp.Core.Validation.ExtractionPriority> priority)
+
+sealed class Ckp.IO.Rules.StaleTierHistoryRule
+  ctor: (System.Int32 bookEdition)
+  method: System.Collections.Generic.IEnumerable<Ckp.Core.Validation.ClaimValidationDiagnostic> Validate(Ckp.Core.Claims.PackageClaim claim, System.Nullable<Ckp.Core.Validation.ExtractionPriority> priority)
+
+sealed class Ckp.IO.Rules.UnknownDomainRule
+  ctor: (System.Collections.Generic.IReadOnlySet<System.String> knownDomains)
+  method: System.Collections.Generic.IEnumerable<Ckp.Core.Validation.ClaimValidationDiagnostic> Validate(Ckp.Core.Claims.PackageClaim claim, System.Nullable<Ckp.Core.Validation.ExtractionPriority> priority)
+

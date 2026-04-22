@@ -15,6 +15,10 @@ namespace Ckp.Core.Field;
 /// </list>
 /// </para>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Pure static helper — no state, no I/O.
+/// Safe to call from any thread; commonly used by transpilers, validators, and tests.
+/// </remarks>
 public static class TurbulenceDetector
 {
     /// <summary>Default turbulence base threshold.</summary>

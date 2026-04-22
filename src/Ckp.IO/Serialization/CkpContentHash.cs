@@ -15,6 +15,9 @@ using System.Text;
 /// </summary>
 /// <remarks>
 /// <para>
+/// <b>Intended consumer:</b> library users writing or verifying signed packages.
+/// </para>
+/// <para>
 /// Algorithm (canonical, spec §10.1 once S8 lands):
 /// </para>
 /// <list type="number">

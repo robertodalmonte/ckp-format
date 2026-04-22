@@ -8,6 +8,11 @@ using Ckp.Core.Field;
 /// and produces a compiled <see cref="FieldPackage"/>. Handles consensus tier computation,
 /// confidence scoring, turbulence detection, status classification, and T0 back-propagation.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users compiling a field-level CKP 2.0 package from one
+/// or more CKP 1.0 inputs. Consilience is the flagship consumer; CLI tools may wrap this
+/// but the compile step itself is a pure transformation with no side effects.
+/// </remarks>
 public interface IFieldPackageCompiler
 {
     /// <summary>

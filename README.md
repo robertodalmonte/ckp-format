@@ -60,7 +60,7 @@ src/
 ├── Ckp.Epub.Cli/       -- `ckp-epub` executable
 └── Ckp.Benchmarks/     -- BenchmarkDotNet harness (not in shipping solution)
 tests/
-└── Ckp.Tests/          -- 284 tests (see "Testing" below)
+└── Ckp.Tests/          -- 305 tests (see "Testing" below)
 docs/                   -- Format spec, architecture, refactoring plan
 examples/               -- Sample .ckp packages
 ```
@@ -196,6 +196,18 @@ For performance and coverage baselines see
 [`docs/Refactoring/performance-baseline.md`](docs/Refactoring/performance-baseline.md)
 and
 [`docs/Refactoring/coverage-baseline.md`](docs/Refactoring/coverage-baseline.md).
+
+### Public-API snapshot
+
+`api/Ckp.Core.txt`, `api/Ckp.IO.txt`, and `api/Ckp.Signing.txt` pin the shipping
+public surface of the three library assemblies. The `PublicApiSnapshotTests`
+suite fails on any drift. To update the baseline after an intentional API
+change:
+
+```bash
+pwsh ./scripts/api-snapshot.ps1          # overwrites api/*.txt
+pwsh ./scripts/api-snapshot.ps1 -Verify  # CI-style check, non-zero on drift
+```
 
 ## The Tier System
 

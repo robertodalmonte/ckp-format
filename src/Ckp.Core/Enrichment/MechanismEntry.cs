@@ -9,6 +9,11 @@ namespace Ckp.Core.Enrichment;
 /// <param name="ClaimIds">IDs of claims that participate in this mechanism.</param>
 /// <param name="PathwayTerms">Biological pathway keywords (e.g., "integrin-FAK", "Rho-ROCK signaling").</param>
 /// <param name="PredictedMeasurements">Free-text descriptions of expected measurable outcomes.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record MechanismEntry(
     string Name,
     string Description,

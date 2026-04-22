@@ -8,6 +8,10 @@ using System.Text;
 /// against a .ckp package routes through here — there is no separate inline
 /// implementation anywhere else in the codebase.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Pure static helper — no state, no I/O.
+/// Safe to call from any thread; commonly used by transpilers, validators, and tests.
+/// </remarks>
 public static class CkpHash
 {
     /// <summary>

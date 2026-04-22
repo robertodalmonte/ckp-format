@@ -12,6 +12,11 @@ namespace Ckp.Core.Manifest;
 /// <param name="Isbn">ISBN-13 identifier.</param>
 /// <param name="Language">BCP-47 language tag (e.g., "en-US").</param>
 /// <param name="Domains">Knowledge domains covered by this book.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record BookMetadata(
     string Key,
     string Title,

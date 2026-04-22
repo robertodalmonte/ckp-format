@@ -7,6 +7,11 @@ namespace Ckp.Core.Alignment;
 /// <param name="TargetPackageId">Package UUID of the target book.</param>
 /// <param name="AlignedClaims">Number of claims with alignments to the target.</param>
 /// <param name="TierMismatches">Number of aligned claims where tiers disagree.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record AlignmentSummary(
     string TargetBook,
     string? TargetPackageId,

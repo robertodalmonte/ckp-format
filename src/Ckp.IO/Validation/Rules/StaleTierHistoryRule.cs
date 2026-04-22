@@ -5,6 +5,11 @@ using Ckp.Core;
 /// <summary>
 /// SEM5: Flags claims whose tier history doesn't reach the current book edition.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users constructing <see cref="CkpExtractionValidator"/>
+/// manually (e.g., tests). In production, these rules are wired in by the validator's
+/// constructor and need not be instantiated directly.
+/// </remarks>
 public sealed class StaleTierHistoryRule : IExtractionRule
 {
     private readonly int _bookEdition;

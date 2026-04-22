@@ -6,6 +6,11 @@ using Ckp.Core;
 /// SEM4: Flags claims containing mechanistic keywords that lack observables.
 /// Keywords are loaded from external JSON — no hardcoded keyword list.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users constructing <see cref="CkpExtractionValidator"/>
+/// manually (e.g., tests). In production, these rules are wired in by the validator's
+/// constructor and need not be instantiated directly.
+/// </remarks>
 public sealed class MechanisticObservableRule : IExtractionRule
 {
     private readonly IReadOnlyList<string> _mechanisticKeywords;

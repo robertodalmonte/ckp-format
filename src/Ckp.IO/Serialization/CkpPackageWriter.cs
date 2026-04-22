@@ -45,6 +45,12 @@ using Ckp.Core;
 /// in the archive only after the hash pass completes.
 /// </para>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Concrete implementation of
+/// <see cref="ICkpPackageWriter"/>; prefer the interface in DI. Output is
+/// deterministic — sorted entries, pinned timestamps, and canonical JSON for
+/// the manifest — so identical inputs produce byte-identical archives.
+/// </remarks>
 public sealed class CkpPackageWriter : ICkpPackageWriter
 {
     /// <summary>

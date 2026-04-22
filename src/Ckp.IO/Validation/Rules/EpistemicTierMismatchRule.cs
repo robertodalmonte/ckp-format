@@ -14,6 +14,11 @@ using Ckp.Core;
 /// </list>
 /// Hedging markers are loaded from external JSON — no hardcoded vocabulary.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users constructing <see cref="CkpExtractionValidator"/>
+/// manually (e.g., tests). In production, these rules are wired in by the validator's
+/// constructor and need not be instantiated directly.
+/// </remarks>
 public sealed class EpistemicTierMismatchRule : IExtractionRule
 {
     private readonly Regex? _hedgingPattern;

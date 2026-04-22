@@ -8,6 +8,13 @@ using System.Text.Json;
 /// Domain-agnostic — works with any KnowledgeBase regardless of topic.
 /// Requires a package.json metadata file in the KnowledgeBase root.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> the <c>Ckp.Transpiler.Cli</c> tool and any library user that
+/// maintains a legacy KB-JSON source-of-truth and wants to emit CKP packages. The DTOs
+/// used to deserialize the KB (<c>Kb*</c>, <c>*File</c>, <c>*Record</c>) are internal and
+/// not part of this contract — only <see cref="TranspileAsync"/> and its returned
+/// <see cref="CkpPackage"/> are stable surface.
+/// </remarks>
 public sealed class KnowledgeBaseTranspiler
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

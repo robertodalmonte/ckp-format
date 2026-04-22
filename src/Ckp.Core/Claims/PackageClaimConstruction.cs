@@ -3,6 +3,10 @@ namespace Ckp.Core.Claims;
 /// <summary>
 /// Factory methods for creating <see cref="PackageClaim"/> instances.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Pure static helper — no state, no I/O.
+/// Safe to call from any thread; commonly used by transpilers, validators, and tests.
+/// </remarks>
 public static class PackageClaimConstruction
 {
     extension(PackageClaim)

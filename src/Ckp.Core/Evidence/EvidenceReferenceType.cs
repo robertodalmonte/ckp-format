@@ -3,6 +3,11 @@ namespace Ckp.Core.Evidence;
 /// <summary>
 /// Type of evidence reference in a CKP claim's evidence array.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public enum EvidenceReferenceType
 {
     /// <summary>A bibliographic citation (PMID, DOI).</summary>

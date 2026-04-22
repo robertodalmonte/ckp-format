@@ -15,6 +15,11 @@ namespace Ckp.Core.Field;
 /// This is the authoritative value used by both the confidence score and turbulence
 /// detector — they never recompute it from the other fields.</param>
 /// <param name="Note">Optional context for the alignment (e.g., "same pathway in fascial fibroblasts").</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record Attestation(
     string BookId,
     string ClaimId,

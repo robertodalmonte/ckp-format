@@ -13,6 +13,11 @@ namespace Ckp.Core.Field;
 /// <param name="DecayLambda">The λ decay constant used during compilation.</param>
 /// <param name="SurvivalAlpha">The α survival bonus constant used during compilation.</param>
 /// <param name="TurbulenceTauBase">The τ_base turbulence threshold used during compilation.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record FieldPackage(
     string FieldId,
     string Version,

@@ -8,6 +8,11 @@ using Ckp.Core.Field;
 /// across MeSH terms, observables, keywords, and domain overlap. Does not merge —
 /// it produces proposals for the <see cref="IFieldPackageCompiler"/> to consume.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users building the CKP 1.0 → 2.0 pipeline. The
+/// proposer is stateless and pure; it does not hit the filesystem or network, so it is
+/// safe to use inside batch jobs, test harnesses, and interactive review tools.
+/// </remarks>
 public interface IAlignmentProposer
 {
     /// <summary>

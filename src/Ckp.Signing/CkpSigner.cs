@@ -10,6 +10,11 @@ using NSec.Cryptography;
 /// so that re-serialization with different property order / whitespace / null handling
 /// cannot invalidate an otherwise-unchanged manifest.
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Concrete implementation of
+/// <see cref="ICkpSigner"/>; prefer the interface in DI. Thread-safe; keeps no
+/// per-call state between invocations.
+/// </remarks>
 public sealed class CkpSigner : ICkpSigner
 {
     private static readonly SignatureAlgorithm Algorithm = SignatureAlgorithm.Ed25519;
@@ -118,6 +123,25 @@ public sealed class CkpSigner : ICkpSigner
         return true;
     }
 
+    /// <inheritdoc cref="ICkpSigner.GenerateKeyPair"/>
+    /// <remarks>
+    /// <para>
+    /// Callers own the lifetime of the returned <c>PrivateKey</c> array — see the
+    /// interface remarks for the full S7 guidance. Typical shape at a call site:
+    /// </para>
+    /// <code>
+    /// var (privateKey, publicKey) = signer.GenerateKeyPair();
+    /// try
+    /// {
+    ///     var signed = signer.SignManifest(manifest, privateKey, source);
+    ///     // ... use `signed` and `publicKey` (safe to keep) ...
+    /// }
+    /// finally
+    /// {
+    ///     System.Security.Cryptography.CryptographicOperations.ZeroMemory(privateKey);
+    /// }
+    /// </code>
+    /// </remarks>
     public (byte[] PrivateKey, byte[] PublicKey) GenerateKeyPair()
     {
         var creationParameters = new KeyCreationParameters { ExportPolicy = KeyExportPolicies.AllowPlaintextExport };

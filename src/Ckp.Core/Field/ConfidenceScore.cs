@@ -9,6 +9,11 @@ namespace Ckp.Core.Field;
 /// <param name="BaseAuthoritySum">Sum of base authority values across attestations.</param>
 /// <param name="DecayPenalty">Total weight lost to exponential decay across attestations.</param>
 /// <param name="SurvivalBonus">Total weight gained from edition survival across attestations.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record ConfidenceScore(
     double FinalValue,
     double BaseAuthoritySum,

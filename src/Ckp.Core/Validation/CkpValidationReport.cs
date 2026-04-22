@@ -6,6 +6,11 @@ namespace Ckp.Core.Validation;
 /// </summary>
 /// <param name="IsValid">True only if there are no Error-level diagnostics.</param>
 /// <param name="Diagnostics">All diagnostics produced during validation.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. Part of the CKP 1.x wire contract —
+/// serialized into the package manifest or a section file and consumed by every
+/// CKP reader, writer, and validator.
+/// </remarks>
 public sealed record CkpValidationReport(
     bool IsValid,
     IReadOnlyList<ClaimValidationDiagnostic> Diagnostics)

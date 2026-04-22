@@ -13,6 +13,12 @@ namespace Ckp.Core.Manifest;
 /// <param name="ContentFingerprint">Statistical fingerprint of the package content.</param>
 /// <param name="T0Registry">Reference to the T0 axiom registry version used.</param>
 /// <param name="Alignments">Summaries of cross-book alignments included in this package.</param>
+/// <remarks>
+/// <b>Intended consumer:</b> library users. This is the signed root of every CKP archive;
+/// <see cref="SignatureSource"/> / <see cref="PackageSignature"/> / <see cref="ContentFingerprint"/>
+/// all hang off it. Construct via <see cref="PackageManifestConstruction.CreateNew"/>
+/// rather than the primary constructor unless you need full control over all fields.
+/// </remarks>
 public sealed record PackageManifest(
     string FormatVersion,
     Guid PackageId,

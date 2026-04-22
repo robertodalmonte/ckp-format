@@ -13,6 +13,9 @@ namespace Ckp.IO;
 /// exact reason.
 /// </para>
 /// </summary>
+/// <remarks>
+/// <b>Intended consumer:</b> library users opting into S3 strict-read semantics.
+/// </remarks>
 public sealed record CkpReadOptions
 {
     /// <summary>Default options — permissive, behaviour-preserving with pre-S3 readers.</summary>
