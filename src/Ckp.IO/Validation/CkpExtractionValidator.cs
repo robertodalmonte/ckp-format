@@ -171,10 +171,19 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
                 $"Manifest claims {fingerprint.ClaimCount} claims but package contains {package.Claims.Count}."));
         }
 
-        int actualT1 = package.Claims.Count(c => c.Tier == Tier.T1);
-        int actualT2 = package.Claims.Count(c => c.Tier == Tier.T2);
-        int actualT3 = package.Claims.Count(c => c.Tier == Tier.T3);
-        int actualT4 = package.Claims.Count(c => c.Tier == Tier.T4);
+        // P6 — single-pass tier count; pre-P6 ran four full-list LINQ Count(predicate)
+        // scans over the same claims list for the SET5 manifest-vs-actual comparison.
+        int actualT1 = 0, actualT2 = 0, actualT3 = 0, actualT4 = 0;
+        foreach (var claim in package.Claims)
+        {
+            switch (claim.Tier)
+            {
+                case Tier.T1: actualT1++; break;
+                case Tier.T2: actualT2++; break;
+                case Tier.T3: actualT3++; break;
+                case Tier.T4: actualT4++; break;
+            }
+        }
 
         if (fingerprint.T1Count != actualT1)
             diagnostics.Add(new("SET5", ClaimValidationSeverity.Error, null,

@@ -67,14 +67,28 @@ internal static class SyntheticPackageBuilder
                 T1Count: 0, T2Count: 0, T3Count: 0, T4Count: 0))
             .ToList();
 
+        // Single-pass tier tally; [GlobalSetup] runs once per benchmark scale but we
+        // still prefer the non-quadratic shape so setup time doesn't distort results.
+        int t1 = 0, t2 = 0, t3 = 0, t4 = 0;
+        foreach (var claim in claims)
+        {
+            switch (claim.Tier)
+            {
+                case Tier.T1: t1++; break;
+                case Tier.T2: t2++; break;
+                case Tier.T3: t3++; break;
+                case Tier.T4: t4++; break;
+            }
+        }
+
         var fingerprint = new ContentFingerprint(
             Algorithm: "SHA-256",
             ClaimCount: claims.Count,
             DomainCount: domains.Count,
-            T1Count: claims.Count(c => c.Tier == Tier.T1),
-            T2Count: claims.Count(c => c.Tier == Tier.T2),
-            T3Count: claims.Count(c => c.Tier == Tier.T3),
-            T4Count: claims.Count(c => c.Tier == Tier.T4),
+            T1Count: t1,
+            T2Count: t2,
+            T3Count: t3,
+            T4Count: t4,
             CitationCount: 0);
 
         var book = new BookMetadata(
