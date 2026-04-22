@@ -29,36 +29,59 @@ public sealed class CkpPackageWriter : ICkpPackageWriter
         using var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
         var options = CkpJsonOptions.Instance;
 
+        // T5 — sort every top-level list by its natural key before serializing, so input
+        // insertion order does not leak into the output bytes. Alignments were already
+        // sorted; claims, citations, axiom-refs, chapters, domains, glossary, editions,
+        // and the four enrichment lists were not.
+        var claims = package.Claims.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var citations = package.Citations.OrderBy(c => c.Ref, StringComparer.Ordinal).ToList();
+        var axiomRefs = package.AxiomRefs.OrderBy(r => r.Ref, StringComparer.Ordinal).ToList();
+        var chapters = package.Chapters.OrderBy(c => c.Number).ThenBy(c => c.Title, StringComparer.Ordinal).ToList();
+        var domains = package.Domains.OrderBy(d => d.Name, StringComparer.Ordinal).ToList();
+        var glossary = package.Glossary.OrderBy(g => g.BookTerm, StringComparer.Ordinal).ToList();
+        var editions = package.Editions.OrderBy(e => e.Edition).ToList();
+        var mechanisms = package.Mechanisms.OrderBy(m => m.Name, StringComparer.Ordinal).ToList();
+        var phenomena = package.Phenomena.OrderBy(p => p.Name, StringComparer.Ordinal).ToList();
+        var publisherCommentary = package.PublisherCommentary
+            .OrderBy(c => c.ClaimId, StringComparer.Ordinal)
+            .ThenBy(c => c.CreatedAt)
+            .ThenBy(c => c.Author, StringComparer.Ordinal)
+            .ToList();
+        var communityCommentary = package.CommunityCommentary
+            .OrderBy(c => c.ClaimId, StringComparer.Ordinal)
+            .ThenBy(c => c.CreatedAt)
+            .ThenBy(c => c.Author, StringComparer.Ordinal)
+            .ToList();
+
         // Collect every entry first, emit in sorted order so ZIP central directory is stable.
         var entries = new List<(string Name, Func<Task<byte[]>> Bytes)>
         {
             ("manifest.json", () => Task.FromResult(CkpCanonicalJson.Serialize(package.Manifest))),
-            ("claims/claims.json", () => SerializeAsync(package.Claims, options, cancellationToken)),
-            ("evidence/citations.json", () => SerializeAsync(package.Citations, options, cancellationToken)),
-            ("evidence/axiom-refs.json", () => SerializeAsync(package.AxiomRefs, options, cancellationToken)),
-            ("structure/chapters.json", () => SerializeAsync(package.Chapters, options, cancellationToken)),
-            ("structure/domains.json", () => SerializeAsync(package.Domains, options, cancellationToken)),
-            ("structure/glossary.json", () => SerializeAsync(package.Glossary, options, cancellationToken)),
-            ("history/editions.json", () => SerializeAsync(package.Editions, options, cancellationToken)),
+            ("claims/claims.json", () => SerializeAsync(claims, options, cancellationToken)),
+            ("evidence/citations.json", () => SerializeAsync(citations, options, cancellationToken)),
+            ("evidence/axiom-refs.json", () => SerializeAsync(axiomRefs, options, cancellationToken)),
+            ("structure/chapters.json", () => SerializeAsync(chapters, options, cancellationToken)),
+            ("structure/domains.json", () => SerializeAsync(domains, options, cancellationToken)),
+            ("structure/glossary.json", () => SerializeAsync(glossary, options, cancellationToken)),
+            ("history/editions.json", () => SerializeAsync(editions, options, cancellationToken)),
             ("history/tier-changes.json", () =>
             {
-                var tierChanges = package.Claims
+                var tierChanges = claims
                     .Where(c => c.TierHistory.Count > 0)
-                    .OrderBy(c => c.Id, StringComparer.Ordinal)
                     .Select(c => new { claimId = c.Id, history = c.TierHistory })
                     .ToList();
                 return SerializeAsync(tierChanges, options, cancellationToken);
             })
         };
 
-        if (package.Mechanisms.Count > 0)
-            entries.Add(("enrichment/mechanisms.json", () => SerializeAsync(package.Mechanisms, options, cancellationToken)));
-        if (package.Phenomena.Count > 0)
-            entries.Add(("enrichment/phenomena.json", () => SerializeAsync(package.Phenomena, options, cancellationToken)));
-        if (package.PublisherCommentary.Count > 0)
-            entries.Add(("enrichment/commentary/publisher.json", () => SerializeAsync(package.PublisherCommentary, options, cancellationToken)));
-        if (package.CommunityCommentary.Count > 0)
-            entries.Add(("enrichment/commentary/community.json", () => SerializeAsync(package.CommunityCommentary, options, cancellationToken)));
+        if (mechanisms.Count > 0)
+            entries.Add(("enrichment/mechanisms.json", () => SerializeAsync(mechanisms, options, cancellationToken)));
+        if (phenomena.Count > 0)
+            entries.Add(("enrichment/phenomena.json", () => SerializeAsync(phenomena, options, cancellationToken)));
+        if (publisherCommentary.Count > 0)
+            entries.Add(("enrichment/commentary/publisher.json", () => SerializeAsync(publisherCommentary, options, cancellationToken)));
+        if (communityCommentary.Count > 0)
+            entries.Add(("enrichment/commentary/community.json", () => SerializeAsync(communityCommentary, options, cancellationToken)));
 
         foreach (var alignment in package.Alignments.OrderBy(a => a.TargetBook, StringComparer.Ordinal))
         {

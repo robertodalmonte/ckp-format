@@ -72,7 +72,7 @@ public sealed class CkpPackageWriterDeterminismTests
     }
 
     // Item 11 — claims supplied in a shuffled order must produce the same output bytes.
-    [Fact(Skip = "Awaiting T5 — writer must sort claims by Id before serializing.")]
+    [Fact]
     public async Task Claims_in_shuffled_order_produce_identical_bytes()
     {
         var ordered = BuildPackage();
@@ -91,7 +91,7 @@ public sealed class CkpPackageWriterDeterminismTests
     }
 
     // Item 11b — citations, domains, chapters, editions likewise.
-    [Fact(Skip = "Awaiting T5 — writer must sort citations/domains/chapters/editions by their natural key.")]
+    [Fact]
     public async Task Auxiliary_lists_in_shuffled_order_produce_identical_bytes()
     {
         var ordered = BuildPackage();
@@ -129,6 +129,29 @@ public sealed class CkpPackageWriterDeterminismTests
         await new CkpPackageWriter().WriteAsync(shuffled, b, ct);
 
         a.ToArray().Should().Equal(b.ToArray());
+    }
+
+    // T5 determinism belt-and-braces — the writer must not emit pretty-printed JSON, so
+    // that future changes to System.Text.Json's WriteIndented default cannot silently
+    // change our output bytes. Assert no newlines appear inside any non-manifest entry.
+    [Fact]
+    public async Task Writer_entries_are_not_pretty_printed()
+    {
+        var package = BuildPackage();
+        var ct = TestContext.Current.CancellationToken;
+        using var ms = new MemoryStream();
+        await new CkpPackageWriter().WriteAsync(package, ms, ct);
+        ms.Position = 0;
+
+        using var archive = new ZipArchive(ms, ZipArchiveMode.Read);
+        foreach (var entry in archive.Entries)
+        {
+            await using var s = entry.Open();
+            using var reader = new StreamReader(s);
+            var text = await reader.ReadToEndAsync(ct);
+            text.Should().NotContain("\n",
+                $"entry {entry.FullName} must be compact JSON — WriteIndented must be false");
+        }
     }
 
     // Item 12 — compression level is Optimal. Indirect check: compressed stream is strictly
