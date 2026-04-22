@@ -1,7 +1,6 @@
 namespace Ckp.IO;
 
 using System.IO.Compression;
-using System.Text.Json;
 using Ckp.Core;
 
 /// <summary>
@@ -14,6 +13,27 @@ using Ckp.Core;
 /// packages therefore produce byte-identical archives, which is required for content
 /// addressing and Ed25519-signature stability.
 /// </para>
+/// <para>
+/// <b>S1 content-hash contract.</b> Every non-manifest entry is hashed (see
+/// <see cref="CkpContentHash"/>) and the digest lands in <see cref="ContentFingerprint.Hash"/>.
+/// The writer enforces one of two hash states on input:
+/// </para>
+/// <list type="number">
+///   <item>
+///     <b>Hash null.</b> The writer computes and injects the hash. Any attached
+///     <see cref="PackageManifest.Signature"/> is stripped because it cannot have covered
+///     the hash. Callers who want a signed package must follow the hash-then-sign flow:
+///     call <see cref="CkpContentHash.ComputeForPackageAsync"/>, inject the hash into
+///     the manifest, sign via <c>CkpSigner</c>, then write.
+///   </item>
+///   <item>
+///     <b>Hash pre-populated.</b> The writer recomputes and asserts the two match. Any
+///     attached signature is preserved — by contract it was computed over the manifest
+///     including this hash, so it transitively covers the whole package. A mismatch
+///     throws <see cref="CkpFormatException"/> because emitting a manifest with a stale
+///     hash would silently corrupt downstream verification.
+///   </item>
+/// </list>
 /// </summary>
 public sealed class CkpPackageWriter : ICkpPackageWriter
 {
@@ -26,73 +46,27 @@ public sealed class CkpPackageWriter : ICkpPackageWriter
 
     public async Task WriteAsync(CkpPackage package, Stream stream, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(package);
+        ArgumentNullException.ThrowIfNull(stream);
+
+        var nonManifestEntries = await PackageEntrySerializer.SerializeAsync(package, cancellationToken);
+        var computedHash = CkpContentHash.Compute(nonManifestEntries);
+
+        var manifest = ReconcileManifestHash(package.Manifest, computedHash);
+        var manifestBytes = CkpCanonicalJson.Serialize(manifest);
+
         using var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
-        var options = CkpJsonOptions.Instance;
 
-        // T5 — sort every top-level list by its natural key before serializing, so input
-        // insertion order does not leak into the output bytes. Alignments were already
-        // sorted; claims, citations, axiom-refs, chapters, domains, glossary, editions,
-        // and the four enrichment lists were not.
-        var claims = package.Claims.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
-        var citations = package.Citations.OrderBy(c => c.Ref, StringComparer.Ordinal).ToList();
-        var axiomRefs = package.AxiomRefs.OrderBy(r => r.Ref, StringComparer.Ordinal).ToList();
-        var chapters = package.Chapters.OrderBy(c => c.Number).ThenBy(c => c.Title, StringComparer.Ordinal).ToList();
-        var domains = package.Domains.OrderBy(d => d.Name, StringComparer.Ordinal).ToList();
-        var glossary = package.Glossary.OrderBy(g => g.BookTerm, StringComparer.Ordinal).ToList();
-        var editions = package.Editions.OrderBy(e => e.Edition).ToList();
-        var mechanisms = package.Mechanisms.OrderBy(m => m.Name, StringComparer.Ordinal).ToList();
-        var phenomena = package.Phenomena.OrderBy(p => p.Name, StringComparer.Ordinal).ToList();
-        var publisherCommentary = package.PublisherCommentary
-            .OrderBy(c => c.ClaimId, StringComparer.Ordinal)
-            .ThenBy(c => c.CreatedAt)
-            .ThenBy(c => c.Author, StringComparer.Ordinal)
-            .ToList();
-        var communityCommentary = package.CommunityCommentary
-            .OrderBy(c => c.ClaimId, StringComparer.Ordinal)
-            .ThenBy(c => c.CreatedAt)
-            .ThenBy(c => c.Author, StringComparer.Ordinal)
-            .ToList();
-
-        // Collect every entry first, emit in sorted order so ZIP central directory is stable.
-        var entries = new List<(string Name, Func<Task<byte[]>> Bytes)>
+        // Collect every entry including the manifest and emit in sorted order so the ZIP
+        // central directory is stable.
+        var allEntries = new List<(string Name, byte[] Bytes)>(nonManifestEntries.Count + 1)
         {
-            ("manifest.json", () => Task.FromResult(CkpCanonicalJson.Serialize(package.Manifest))),
-            ("claims/claims.json", () => SerializeAsync(claims, options, cancellationToken)),
-            ("evidence/citations.json", () => SerializeAsync(citations, options, cancellationToken)),
-            ("evidence/axiom-refs.json", () => SerializeAsync(axiomRefs, options, cancellationToken)),
-            ("structure/chapters.json", () => SerializeAsync(chapters, options, cancellationToken)),
-            ("structure/domains.json", () => SerializeAsync(domains, options, cancellationToken)),
-            ("structure/glossary.json", () => SerializeAsync(glossary, options, cancellationToken)),
-            ("history/editions.json", () => SerializeAsync(editions, options, cancellationToken)),
-            ("history/tier-changes.json", () =>
-            {
-                var tierChanges = claims
-                    .Where(c => c.TierHistory.Count > 0)
-                    .Select(c => new { claimId = c.Id, history = c.TierHistory })
-                    .ToList();
-                return SerializeAsync(tierChanges, options, cancellationToken);
-            })
+            ("manifest.json", manifestBytes),
         };
+        allEntries.AddRange(nonManifestEntries);
 
-        if (mechanisms.Count > 0)
-            entries.Add(("enrichment/mechanisms.json", () => SerializeAsync(mechanisms, options, cancellationToken)));
-        if (phenomena.Count > 0)
-            entries.Add(("enrichment/phenomena.json", () => SerializeAsync(phenomena, options, cancellationToken)));
-        if (publisherCommentary.Count > 0)
-            entries.Add(("enrichment/commentary/publisher.json", () => SerializeAsync(publisherCommentary, options, cancellationToken)));
-        if (communityCommentary.Count > 0)
-            entries.Add(("enrichment/commentary/community.json", () => SerializeAsync(communityCommentary, options, cancellationToken)));
-
-        foreach (var alignment in package.Alignments.OrderBy(a => a.TargetBook, StringComparer.Ordinal))
+        foreach (var (name, bytes) in allEntries.OrderBy(e => e.Name, StringComparer.Ordinal))
         {
-            var captured = alignment;
-            entries.Add(($"alignment/external/{captured.TargetBook}.json",
-                () => SerializeAsync(captured, options, cancellationToken)));
-        }
-
-        foreach (var (name, bytesFactory) in entries.OrderBy(e => e.Name, StringComparer.Ordinal))
-        {
-            byte[] bytes = await bytesFactory();
             var zipEntry = archive.CreateEntry(name, CompressionLevel.Optimal);
             zipEntry.LastWriteTime = DeterministicEpoch;
             await using var entryStream = zipEntry.Open();
@@ -100,12 +74,33 @@ public sealed class CkpPackageWriter : ICkpPackageWriter
         }
     }
 
-    private static async Task<byte[]> SerializeAsync<T>(
-        T value, JsonSerializerOptions options, CancellationToken cancellationToken)
+    private static PackageManifest ReconcileManifestHash(PackageManifest manifest, string computedHash)
     {
-        using var ms = new MemoryStream();
-        await JsonSerializer.SerializeAsync(ms, value, options, cancellationToken);
-        return ms.ToArray();
-    }
+        var fp = manifest.ContentFingerprint;
 
+        if (fp.Hash is null)
+        {
+            // Hash was not pre-computed. Inject it and drop any attached signature — a
+            // signature on a manifest without the content hash could not have covered
+            // the content, so preserving it would create a security-misleading artefact.
+            return manifest with
+            {
+                ContentFingerprint = fp with { Hash = computedHash },
+                Signature = null,
+            };
+        }
+
+        if (!string.Equals(fp.Hash, computedHash, StringComparison.Ordinal))
+        {
+            throw new CkpFormatException(
+                $"Manifest content hash '{fp.Hash}' does not match the computed hash '{computedHash}' " +
+                "for the package body. Re-run CkpContentHash.ComputeForPackageAsync after mutating the package, " +
+                "then re-sign before calling WriteAsync.",
+                entryName: "manifest.json");
+        }
+
+        // Hash matches — caller followed the hash-then-sign flow. Preserve the manifest
+        // (including signature) verbatim.
+        return manifest;
+    }
 }

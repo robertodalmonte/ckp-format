@@ -153,20 +153,31 @@ public sealed class CkpSignerTests
     [Fact]
     public async Task Signed_manifest_verifies_after_write_then_read()
     {
+        // S1 contract: the signature must be computed over the manifest *after* the content
+        // hash has been injected, otherwise the signed bytes will not match what the writer
+        // emits. Callers follow the hash-then-sign-then-write flow below.
         var (privateKey, _) = _signer.GenerateKeyPair();
         var writer = new CkpPackageWriter();
         var reader = new CkpPackageReader();
 
-        var manifest = _signer.SignManifest(CreateManifest(), privateKey, SignatureSource.Author);
-        var package = new CkpPackage { Manifest = manifest };
-
         var ct = TestContext.Current.CancellationToken;
+        var unsignedPackage = new CkpPackage { Manifest = CreateManifest() };
+        var contentHash = await CkpContentHash.ComputeForPackageAsync(unsignedPackage, ct);
+
+        var hashedManifest = unsignedPackage.Manifest with
+        {
+            ContentFingerprint = unsignedPackage.Manifest.ContentFingerprint with { Hash = contentHash },
+        };
+        var signedManifest = _signer.SignManifest(hashedManifest, privateKey, SignatureSource.Author);
+        var package = unsignedPackage with { Manifest = signedManifest };
+
         using var ms = new MemoryStream();
         await writer.WriteAsync(package, ms, ct);
         ms.Position = 0;
         var roundTripped = await reader.ReadAsync(ms, ct);
 
         _signer.VerifyManifest(roundTripped.Manifest).Should().BeTrue();
+        roundTripped.Manifest.ContentFingerprint.Hash.Should().Be(contentHash);
     }
 
     [Fact]
