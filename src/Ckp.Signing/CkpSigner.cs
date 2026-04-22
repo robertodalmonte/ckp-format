@@ -44,13 +44,78 @@ public sealed class CkpSigner : ICkpSigner
             Source: source);
     }
 
+    /// <summary>
+    /// Verifies an Ed25519 signature over <paramref name="manifestJson"/>.
+    /// <para>
+    /// Hardened per QualityRaisingPlan S2: returns <c>false</c> (never throws) for any
+    /// of the following tampering / confusion scenarios:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><see cref="PackageSignature.Algorithm"/> is not <c>"Ed25519"</c> (ordinal, case-insensitive).</item>
+    ///   <item><see cref="PackageSignature.PublicKey"/> or <see cref="PackageSignature.Signature"/> is not valid base64.</item>
+    ///   <item>Decoded public key is not the 32-byte Ed25519 length.</item>
+    ///   <item>Decoded signature is not the 64-byte Ed25519 length.</item>
+    /// </list>
+    /// <para>
+    /// The only exception path is <see cref="ArgumentNullException"/> on a null
+    /// <paramref name="signature"/>, which is a programming error, not a
+    /// verification failure.
+    /// </para>
+    /// </summary>
     public bool Verify(ReadOnlySpan<byte> manifestJson, PackageSignature signature)
     {
-        byte[] publicKeyBytes = Convert.FromBase64String(signature.PublicKey);
-        byte[] signatureBytes = Convert.FromBase64String(signature.Signature);
+        ArgumentNullException.ThrowIfNull(signature);
 
-        var publicKey = PublicKey.Import(Algorithm, publicKeyBytes, KeyBlobFormat.RawPublicKey);
+        // D10/S2: reject non-Ed25519 algorithm strings up-front. Without this, an attacker
+        // who rewrites the algorithm field still verifies as long as the key+signature
+        // happen to be Ed25519-shaped.
+        if (!string.Equals(signature.Algorithm, "Ed25519", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!TryFromBase64(signature.PublicKey, out var publicKeyBytes)) return false;
+        if (!TryFromBase64(signature.Signature, out var signatureBytes)) return false;
+
+        // Ed25519 has fixed sizes: 32-byte public key, 64-byte signature.
+        // NSec would throw on mismatch; we translate to a false result instead.
+        if (publicKeyBytes.Length != 32) return false;
+        if (signatureBytes.Length != 64) return false;
+
+        PublicKey publicKey;
+        try
+        {
+            publicKey = PublicKey.Import(Algorithm, publicKeyBytes, KeyBlobFormat.RawPublicKey);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
         return Algorithm.Verify(publicKey, manifestJson, signatureBytes);
+    }
+
+    private static bool TryFromBase64(string value, out byte[] bytes)
+    {
+        // Overload with char-span + Span<byte> lets us avoid Convert.FromBase64String's throw path.
+        // Upper bound the output size and trim to actual bytes written.
+        bytes = [];
+        if (value is null) return false;
+        var maxLen = value.Length * 3 / 4 + 3;
+        var buffer = new byte[maxLen];
+        if (!Convert.TryFromBase64String(value, buffer, out int written))
+            return false;
+        if (written == buffer.Length)
+        {
+            bytes = buffer;
+        }
+        else
+        {
+            bytes = new byte[written];
+            Buffer.BlockCopy(buffer, 0, bytes, 0, written);
+        }
+        return true;
     }
 
     public (byte[] PrivateKey, byte[] PublicKey) GenerateKeyPair()
