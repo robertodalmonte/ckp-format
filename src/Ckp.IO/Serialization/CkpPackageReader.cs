@@ -18,12 +18,25 @@ public sealed class CkpPackageReader : ICkpPackageReader
 
     private const string AlignmentExternalPrefix = "alignment/external/";
 
-    public async Task<CkpPackage> ReadAsync(Stream stream, CancellationToken cancellationToken = default)
-    {
-        using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
-        var options = CkpJsonOptions.Instance;
+    public Task<CkpPackage> ReadAsync(Stream stream, CancellationToken cancellationToken = default) =>
+        ReadAsync(stream, CkpReadOptions.Default, cancellationToken);
 
-        var manifest = await ReadRequiredEntryAsync<PackageManifest>(archive, "manifest.json", options, cancellationToken);
+    public async Task<CkpPackage> ReadAsync(Stream stream, CkpReadOptions options, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (options.VerifySignature && options.SignatureVerifier is null)
+        {
+            throw new InvalidOperationException(
+                "CkpReadOptions.VerifySignature is true but SignatureVerifier is null. " +
+                "Wire in a delegate that calls Ckp.Signing.CkpSigner.VerifyManifest.");
+        }
+
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+        var jsonOptions = CkpJsonOptions.Instance;
+
+        var manifest = await ReadRequiredEntryAsync<PackageManifest>(archive, "manifest.json", jsonOptions, cancellationToken);
 
         // T3: reject unknown formatVersion. Spec §15.4 mandates this; earlier readers silently
         // accepted any string which made forward-compat ambiguous.
@@ -34,29 +47,29 @@ public sealed class CkpPackageReader : ICkpPackageReader
                 entryName: "manifest.json");
         }
 
-        var claims = await ReadEntryAsync<List<PackageClaim>>(archive, "claims/claims.json", options, cancellationToken) ?? [];
-        var citations = await ReadEntryAsync<List<CitationEntry>>(archive, "evidence/citations.json", options, cancellationToken) ?? [];
-        var axiomRefs = await ReadEntryAsync<List<EvidenceReference>>(archive, "evidence/axiom-refs.json", options, cancellationToken) ?? [];
-        var chapters = await ReadEntryAsync<List<ChapterInfo>>(archive, "structure/chapters.json", options, cancellationToken) ?? [];
-        var domains = await ReadEntryAsync<List<DomainInfo>>(archive, "structure/domains.json", options, cancellationToken) ?? [];
-        var glossary = await ReadEntryAsync<List<GlossaryEntry>>(archive, "structure/glossary.json", options, cancellationToken) ?? [];
-        var editions = await ReadEntryAsync<List<EditionInfo>>(archive, "history/editions.json", options, cancellationToken) ?? [];
+        var claims = await ReadEntryAsync<List<PackageClaim>>(archive, "claims/claims.json", jsonOptions, cancellationToken) ?? [];
+        var citations = await ReadEntryAsync<List<CitationEntry>>(archive, "evidence/citations.json", jsonOptions, cancellationToken) ?? [];
+        var axiomRefs = await ReadEntryAsync<List<EvidenceReference>>(archive, "evidence/axiom-refs.json", jsonOptions, cancellationToken) ?? [];
+        var chapters = await ReadEntryAsync<List<ChapterInfo>>(archive, "structure/chapters.json", jsonOptions, cancellationToken) ?? [];
+        var domains = await ReadEntryAsync<List<DomainInfo>>(archive, "structure/domains.json", jsonOptions, cancellationToken) ?? [];
+        var glossary = await ReadEntryAsync<List<GlossaryEntry>>(archive, "structure/glossary.json", jsonOptions, cancellationToken) ?? [];
+        var editions = await ReadEntryAsync<List<EditionInfo>>(archive, "history/editions.json", jsonOptions, cancellationToken) ?? [];
 
-        var mechanisms = await ReadEntryAsync<List<MechanismEntry>>(archive, "enrichment/mechanisms.json", options, cancellationToken) ?? [];
-        var phenomena = await ReadEntryAsync<List<PhenomenonEntry>>(archive, "enrichment/phenomena.json", options, cancellationToken) ?? [];
-        var publisherCommentary = await ReadEntryAsync<List<CommentaryEntry>>(archive, "enrichment/commentary/publisher.json", options, cancellationToken) ?? [];
-        var communityCommentary = await ReadEntryAsync<List<CommentaryEntry>>(archive, "enrichment/commentary/community.json", options, cancellationToken) ?? [];
+        var mechanisms = await ReadEntryAsync<List<MechanismEntry>>(archive, "enrichment/mechanisms.json", jsonOptions, cancellationToken) ?? [];
+        var phenomena = await ReadEntryAsync<List<PhenomenonEntry>>(archive, "enrichment/phenomena.json", jsonOptions, cancellationToken) ?? [];
+        var publisherCommentary = await ReadEntryAsync<List<CommentaryEntry>>(archive, "enrichment/commentary/publisher.json", jsonOptions, cancellationToken) ?? [];
+        var communityCommentary = await ReadEntryAsync<List<CommentaryEntry>>(archive, "enrichment/commentary/community.json", jsonOptions, cancellationToken) ?? [];
 
         var alignments = new List<BookAlignment>();
         foreach (var entry in archive.Entries)
         {
             if (!IsAlignmentEntry(entry.FullName)) continue;
-            var alignment = await ReadEntryStreamAsync<BookAlignment>(entry, options, cancellationToken);
+            var alignment = await ReadEntryStreamAsync<BookAlignment>(entry, jsonOptions, cancellationToken);
             if (alignment is not null)
                 alignments.Add(alignment);
         }
 
-        return new CkpPackage
+        var package = new CkpPackage
         {
             Manifest = manifest,
             Claims = claims,
@@ -72,6 +85,88 @@ public sealed class CkpPackageReader : ICkpPackageReader
             PublisherCommentary = publisherCommentary,
             CommunityCommentary = communityCommentary,
         };
+
+        EnforceStrictOptions(package, options, cancellationToken);
+        if (options.RequireContentHash || options.VerifySignature)
+            await EnforceContentAndSignatureAsync(package, options, cancellationToken);
+
+        return package;
+    }
+
+    /// <summary>
+    /// Applies the options that can be checked directly against the hydrated manifest,
+    /// before any further work (signature verification, hash recomputation). Keeps the
+    /// cheap checks up front so a strict reader rejects obviously-wrong input fast.
+    /// </summary>
+    private static void EnforceStrictOptions(CkpPackage package, CkpReadOptions options, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (options.RequireSignature && package.Manifest.Signature is null)
+        {
+            throw new CkpFormatException(
+                "Strict-read mode required a signature but the manifest has none " +
+                "(T-DOWNGRADE-UNSIGNED; see SigningThreatModel.md §3).",
+                entryName: "manifest.json");
+        }
+
+        if (options.ExpectedPublicKey is not null)
+        {
+            var actual = package.Manifest.Signature?.PublicKey;
+            if (!string.Equals(actual, options.ExpectedPublicKey, StringComparison.Ordinal))
+            {
+                throw new CkpFormatException(
+                    "Strict-read mode pinned a public key that does not match the signature's " +
+                    "(T-FORGE-KEY; see SigningThreatModel.md §3).",
+                    entryName: "manifest.json");
+            }
+        }
+    }
+
+    private static async Task EnforceContentAndSignatureAsync(
+        CkpPackage package, CkpReadOptions options, CancellationToken cancellationToken)
+    {
+        if (options.RequireContentHash)
+        {
+            var stored = package.Manifest.ContentFingerprint.Hash;
+            if (stored is null)
+            {
+                throw new CkpFormatException(
+                    "Strict-read mode required a content hash but ContentFingerprint.Hash is null. " +
+                    "Package was written by a pre-S1 writer.",
+                    entryName: "manifest.json");
+            }
+
+            var computed = await CkpContentHash.ComputeForPackageAsync(package, cancellationToken);
+            if (!string.Equals(stored, computed, StringComparison.Ordinal))
+            {
+                throw new CkpFormatException(
+                    $"Strict-read mode content-hash mismatch: manifest says '{stored}', archive body hashes to '{computed}' " +
+                    "(T-BYTE / T-ADD; see SigningThreatModel.md §3).",
+                    entryName: "manifest.json");
+            }
+        }
+
+        if (options.VerifySignature)
+        {
+            // Verifier is guaranteed non-null by the precondition check at entry.
+            if (package.Manifest.Signature is null)
+            {
+                // VerifySignature without RequireSignature on an unsigned package is a caller error.
+                throw new CkpFormatException(
+                    "Strict-read mode requested signature verification but the manifest has no signature. " +
+                    "Set RequireSignature = true to reject unsigned packages, or do not verify unsigned input.",
+                    entryName: "manifest.json");
+            }
+
+            if (!options.SignatureVerifier!(package.Manifest))
+            {
+                throw new CkpFormatException(
+                    "Strict-read mode signature verification failed " +
+                    "(T-BYTE manifest-scope / T-FORGE-KEY / T-DOWNGRADE-ALGORITHM; see SigningThreatModel.md §3).",
+                    entryName: "manifest.json");
+            }
+        }
     }
 
     /// <summary>

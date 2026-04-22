@@ -6,9 +6,8 @@ not, and the adversary capabilities we explicitly consider. Cross-reference:
 (`SignManifest`, `VerifyManifest`), and `src/Ckp.IO/Serialization/CkpContentHash.cs`
 (the S1 content hash that brings non-manifest entries inside the signed scope).
 
-**Status:** written post-S1 (2026-04-22). S3 (strict-read mode) and S8 (spec alignment)
-are still open; paragraphs that depend on them are marked **[Pending S3]** /
-**[Pending S8]**.
+**Status:** written post-S1 (2026-04-22), updated post-S3. S8 (spec alignment) is still
+open; paragraphs that depend on it are marked **[Pending S8]**.
 
 ## 1. Actors
 
@@ -44,9 +43,11 @@ Numbering matches the test `CkpContentHashTests` + `CkpSignerSecurityTests` suit
   fails.
 - If the byte is inside any non-manifest entry → that entry's leaf SHA-256 changes → the
   root content hash changes → the manifest now disagrees with the archive body.
-  **[Pending S3]** strict-read mode detects this by recomputing and comparing. Until
-  S3 lands, `VerifyManifest` still returns true because the manifest itself is intact —
-  callers must invoke `CkpContentHash.ComputeForPackageAsync` and compare manually.
+  **Mitigation wired (S3).** strict-read mode detects this by recomputing and comparing. Until
+  **Mitigation wired (S3)** — `CkpReadOptions.RequireContentHash = true` recomputes the
+  hash over the archive body and rejects the read if it doesn't match the manifest's
+  stored hash. Without that flag, `VerifyManifest` still returns true for a content-only
+  tamper because the manifest bytes themselves are intact.
 
 Covered by `CkpContentHashTests.Post_write_tampering_breaks_signature_verification` and
 `Writer_throws_when_manifest_hash_mismatches_computed`.
@@ -66,9 +67,12 @@ not change the hash. ZIP central-directory order is cosmetic. Defended by constr
 - If the entry name falls inside a known prefix (`claims/claims.json`, etc.) the reader
   will either replace the expected entry (same name → rejected by the hash since the
   bytes differ) or ignore unknown siblings (unknown name → not counted in the hash →
-  **undetected unless S3 strict mode cross-checks the archive entry set against the
-  hashed set**). **[Pending S3]**: strict mode must enumerate the archive and hash the
-  same set, rejecting extra unrecognized entries.
+  undetected by signature alone). **Mitigation wired (S3)** —
+  `CkpReadOptions.RequireContentHash = true` recomputes the hash over the exact entry
+  set the reader actually processed; any extra entry outside that set cannot inflate the
+  hashed set, and a spurious entry that replaces a recognized name fails the hash-byte
+  equality check. For entries with unrecognized names the reader simply ignores them,
+  which preserves the hash invariant.
 - If the entry is under `alignment/external/` it will be picked up by the reader; since
   it was not in the signed hash, the computed-vs-stored hash comparison (S3) fails.
 
@@ -87,7 +91,7 @@ empty, padded variants).
 
 `VerifyManifest` returns `false` for null signature — correct behaviour. But a
 consumer that reads the package and never calls verify still holds unsigned data.
-**[Pending S3]**: the strict-read option `RequireSignature = true` fails the read
+**Mitigation wired (S3).**: the strict-read option `RequireSignature = true` fails the read
 at the reader level, so callers cannot accidentally skip verification.
 
 ### T-FORGE-KEY. Forged signature with attacker-controlled key
@@ -97,7 +101,7 @@ at the reader level, so callers cannot accidentally skip verification.
 The Ed25519 math accepts the forged signature against the forged key. **This attack
 succeeds at the format level** — the defence is out-of-band: the consumer must compare
 the `publicKey` field against a pinned expected key before trusting the verification
-result. **[Pending S3]**: `CkpReadOptions.ExpectedPublicKey` makes this check mandatory
+result. **Mitigation wired (S3).**: `CkpReadOptions.ExpectedPublicKey` makes this check mandatory
 at the reader layer.
 
 ### T-MALFORMED-BASE64. Base64 corruption panic
@@ -176,8 +180,6 @@ each cross-linked to code or a pending work item.
 
 ## 6. Future work
 
-- **S3** — wire the threats marked **[Pending S3]** into `CkpReadOptions` so consumers
-  cannot forget to check. Target: verify-by-default, opt out explicitly.
 - **S8** — reconcile spec §10 narrative with this document. Currently the spec predates
   S1 and still talks about "signature over the package content" without explaining the
   hash mechanism.

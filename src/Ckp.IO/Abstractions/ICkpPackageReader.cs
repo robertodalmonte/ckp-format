@@ -15,4 +15,12 @@ public interface ICkpPackageReader
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The deserialized package with all claims, evidence, and structure.</returns>
     Task<CkpPackage> ReadAsync(Stream stream, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Strict-mode read (S3). Enforces the integrity checks selected on
+    /// <paramref name="options"/> — requires a signature, recomputes the content hash,
+    /// pins the public key, or verifies the Ed25519 signature. Any failing check throws
+    /// <see cref="CkpFormatException"/>.
+    /// </summary>
+    Task<CkpPackage> ReadAsync(Stream stream, CkpReadOptions options, CancellationToken cancellationToken = default);
 }
