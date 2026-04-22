@@ -267,7 +267,8 @@ public sealed class KnowledgeBaseTranspiler
     /// Extracts direction (Increased/Decreased/change), measurement name,
     /// and instrument (if "measured by" / "using" pattern found).
     /// </summary>
-    public static Observable ParsePredictedMeasurement(string text)
+    /// <remarks>Internal parser; exposed to <c>Ckp.Tests</c> via <c>InternalsVisibleTo</c>.</remarks>
+    internal static Observable ParsePredictedMeasurement(string text)
     {
         string direction = "expected";
         string measurement = text;

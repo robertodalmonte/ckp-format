@@ -7,7 +7,8 @@ using VersOne.Epub;
 /// Extracts chapters from ePub files using the publisher's navigation TOC.
 /// Falls back to reading order when no TOC is present.
 /// </summary>
-public static partial class EpubExtractor
+/// <remarks>Internal implementation detail of <see cref="EpubTranspiler"/>; exposed to <c>Ckp.Tests</c> via <c>InternalsVisibleTo</c>.</remarks>
+internal static partial class EpubExtractor
 {
     [GeneratedRegex(@"<[^>]+>", RegexOptions.Compiled)]
     private static partial Regex HtmlTagPattern();
@@ -24,7 +25,7 @@ public static partial class EpubExtractor
     /// <summary>
     /// Reads an ePub file and extracts chapters using the navigation TOC.
     /// </summary>
-    public static async Task<ChapterText[]> ExtractAsync(string epubPath)
+    internal static async Task<ChapterText[]> ExtractAsync(string epubPath)
     {
         if (!Path.GetExtension(epubPath).Equals(".epub", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException(
@@ -92,7 +93,7 @@ public static partial class EpubExtractor
     /// <summary>
     /// Strips HTML tags from XHTML content and normalizes whitespace.
     /// </summary>
-    public static string StripHtml(string html)
+    internal static string StripHtml(string html)
     {
         string text = BlockLevelTags().Replace(html, "\n");
         text = HtmlTagPattern().Replace(text, "");

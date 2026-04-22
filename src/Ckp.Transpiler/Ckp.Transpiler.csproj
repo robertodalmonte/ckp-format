@@ -4,6 +4,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ckp.Core\Ckp.Core.csproj" />
-    <ProjectReference Include="..\Ckp.IO\Ckp.IO.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ckp.Tests" />
   </ItemGroup>
 </Project>

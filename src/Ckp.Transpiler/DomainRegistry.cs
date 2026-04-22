@@ -6,12 +6,13 @@ using System.Text.RegularExpressions;
 /// Parses KnowledgeBase claim IDs into CKP-format components.
 /// Domain-agnostic — works with any KnowledgeBase regardless of topic.
 /// </summary>
-public static partial class DomainRegistry
+/// <remarks>Internal implementation detail of <see cref="KnowledgeBaseTranspiler"/>; exposed to <c>Ckp.Tests</c> via <c>InternalsVisibleTo</c>.</remarks>
+internal static partial class DomainRegistry
 {
     /// <summary>
     /// Extracts the domain code from a KB claim ID (e.g., "cl-ans-001" → "ANS").
     /// </summary>
-    public static string ExtractDomainCode(string kbClaimId)
+    internal static string ExtractDomainCode(string kbClaimId)
     {
         var match = ClaimIdPattern().Match(kbClaimId);
         if (!match.Success)
@@ -22,7 +23,7 @@ public static partial class DomainRegistry
     /// <summary>
     /// Extracts the sequence number from a KB claim ID (e.g., "cl-ans-001" → 1).
     /// </summary>
-    public static int ExtractSequence(string kbClaimId)
+    internal static int ExtractSequence(string kbClaimId)
     {
         var match = ClaimIdPattern().Match(kbClaimId);
         if (!match.Success)
@@ -34,7 +35,7 @@ public static partial class DomainRegistry
     /// Converts a KB claim ID to a CKP package claim ID.
     /// "cl-ans-001" → "consilience-v1.ANS.001"
     /// </summary>
-    public static string ToCkpClaimId(string kbClaimId, string bookKey)
+    internal static string ToCkpClaimId(string kbClaimId, string bookKey)
     {
         string code = ExtractDomainCode(kbClaimId);
         int seq = ExtractSequence(kbClaimId);
@@ -45,7 +46,7 @@ public static partial class DomainRegistry
     /// Returns the domain name as the lowercase domain code.
     /// The transpiler is domain-agnostic — it does not interpret what codes mean.
     /// </summary>
-    public static string ToDomainName(string domainCode) => domainCode.ToLowerInvariant();
+    internal static string ToDomainName(string domainCode) => domainCode.ToLowerInvariant();
 
     [GeneratedRegex(@"^cl-([a-z]+)-(\d+)$", RegexOptions.IgnoreCase)]
     private static partial Regex ClaimIdPattern();
