@@ -1,7 +1,9 @@
-using System.IO.Compression;
-using System.Text;
+// A2: this CLI depends only on Ckp.Epub (which transitively brings Ckp.Core and the
+// façade over Ckp.IO for writing). The direct Ckp.IO / System.IO.Compression coupling
+// that pre-A2 existed here has moved into Ckp.Epub.EpubTranspilerExtensions — see
+// docs/Architecture.md for the allowed-edges graph that forbids CLI projects from
+// reaching across the library layer.
 using Ckp.Epub;
-using Ckp.IO;
 
 if (args.Length < 2)
 {
@@ -85,29 +87,10 @@ var metadata = new BookMetadataArgs(
 Console.WriteLine($"Extracting: {epubPath}");
 
 var transpiler = new EpubTranspiler(epubPath, metadata);
-var package = await transpiler.TranspileAsync();
+var package = await transpiler.TranspileAndWriteAsync(outputPath);
 
 Console.WriteLine($"  Chapters: {package.Chapters.Count}");
 Console.WriteLine($"  Claims:   {package.Claims.Count}");
-
-var writer = new CkpPackageWriter();
-await using var fileStream = File.Create(outputPath);
-await writer.WriteAsync(package, fileStream);
-
-fileStream.Seek(0, SeekOrigin.Begin);
-using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Update, leaveOpen: false))
-{
-    foreach (ChapterText chapter in transpiler.Chapters)
-    {
-        var entry = archive.CreateEntry(
-            $"chapters/{chapter.ChapterNumber:D3}.txt",
-            CompressionLevel.Optimal);
-        await using var stream = entry.Open();
-        await using var sw = new StreamWriter(stream, Encoding.UTF8);
-        await sw.WriteAsync(chapter.Text);
-    }
-}
-
 Console.WriteLine($"  Chapter text files written: {transpiler.Chapters.Length}");
 Console.WriteLine($"Package written: {outputPath}");
 return 0;

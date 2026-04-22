@@ -5,7 +5,7 @@
     <AssemblyName>ckp-transpile</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <!-- A2: CLI depends only on the library. The library itself references Ckp.IO. -->
     <ProjectReference Include="..\Ckp.Transpiler\Ckp.Transpiler.csproj" />
-    <ProjectReference Include="..\Ckp.IO\Ckp.IO.csproj" />
   </ItemGroup>
 </Project>

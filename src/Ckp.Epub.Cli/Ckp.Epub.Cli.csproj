@@ -5,7 +5,7 @@
     <AssemblyName>ckp-epub</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <!-- A2: CLI depends only on the library. The library itself references Ckp.IO. -->
     <ProjectReference Include="..\Ckp.Epub\Ckp.Epub.csproj" />
-    <ProjectReference Include="..\Ckp.IO\Ckp.IO.csproj" />
   </ItemGroup>
 </Project>

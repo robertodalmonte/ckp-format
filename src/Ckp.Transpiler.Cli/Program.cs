@@ -1,4 +1,7 @@
-using Ckp.IO;
+// A2: this CLI depends only on Ckp.Transpiler (which transitively brings Ckp.Core and
+// Ckp.IO types surfaced through the façade). The direct Ckp.IO reference that pre-A2
+// existed here has been dropped — see docs/Architecture.md for the allowed-edges
+// graph that forbids CLI projects from reaching across the library layer.
 using Ckp.Transpiler;
 
 if (args.Length < 2)
@@ -22,16 +25,11 @@ if (!Directory.Exists(kbPath))
 Console.WriteLine($"Transpiling KnowledgeBase: {kbPath}");
 
 var transpiler = new KnowledgeBaseTranspiler(kbPath);
-var package = await transpiler.TranspileAsync();
+var package = await transpiler.TranspileAndWriteAsync(outputPath);
 
 Console.WriteLine($"  Claims:    {package.Claims.Count}");
 Console.WriteLine($"  Citations: {package.Citations.Count}");
 Console.WriteLine($"  Domains:   {package.Domains.Count}");
 Console.WriteLine($"  T1: {package.Manifest.ContentFingerprint.T1Count}  T2: {package.Manifest.ContentFingerprint.T2Count}  T3: {package.Manifest.ContentFingerprint.T3Count}  T4: {package.Manifest.ContentFingerprint.T4Count}");
-
-var writer = new CkpPackageWriter();
-await using var outStream = File.Create(outputPath);
-await writer.WriteAsync(package, outStream);
-
 Console.WriteLine($"Package written: {outputPath}");
 return 0;
