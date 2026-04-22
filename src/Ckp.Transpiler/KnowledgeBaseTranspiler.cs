@@ -82,17 +82,38 @@ public sealed class KnowledgeBaseTranspiler
             .Select(e => MapCitation(e.ev, e.referencedBy))
             .ToList();
 
-        // 6. Build domain index
-        var domains = packageClaims
-            .GroupBy(c => c.Domain)
-            .Select(g => new DomainInfo(
-                Name: g.Key,
-                ClaimCount: g.Count(),
-                T1Count: g.Count(c => c.Tier == Tier.T1),
-                T2Count: g.Count(c => c.Tier == Tier.T2),
-                T3Count: g.Count(c => c.Tier == Tier.T3),
-                T4Count: g.Count(c => c.Tier == Tier.T4)))
-            .OrderBy(d => d.Name)
+        // 6. Build domain index + package-wide tier counts in a single pass.
+        // Pre-P3 this was five separate LINQ enumerations (one per tier, plus ClaimCount),
+        // computed twice: once inside a GroupBy/Select for DomainInfo and again in
+        // ContentFingerprint construction. For an N-claim package that's 9N comparisons
+        // and nine linq-iterator allocations. Collapsing to a single foreach-per-scope
+        // makes the transpile time linear again and keeps the inline tier-count logic
+        // identical to the loop in CkpPackageWriter (no divergent counting rules).
+        var domainAccum = new Dictionary<string, (int Claims, int T1, int T2, int T3, int T4)>(StringComparer.Ordinal);
+        int pkgT1 = 0, pkgT2 = 0, pkgT3 = 0, pkgT4 = 0;
+        foreach (var claim in packageClaims)
+        {
+            domainAccum.TryGetValue(claim.Domain, out var d);
+            d.Claims++;
+            switch (claim.Tier)
+            {
+                case Tier.T1: d.T1++; pkgT1++; break;
+                case Tier.T2: d.T2++; pkgT2++; break;
+                case Tier.T3: d.T3++; pkgT3++; break;
+                case Tier.T4: d.T4++; pkgT4++; break;
+            }
+            domainAccum[claim.Domain] = d;
+        }
+
+        var domains = domainAccum
+            .OrderBy(kvp => kvp.Key, StringComparer.Ordinal)
+            .Select(kvp => new DomainInfo(
+                Name: kvp.Key,
+                ClaimCount: kvp.Value.Claims,
+                T1Count: kvp.Value.T1,
+                T2Count: kvp.Value.T2,
+                T3Count: kvp.Value.T3,
+                T4Count: kvp.Value.T4))
             .ToList();
 
         // 7. Build manifest
@@ -111,10 +132,10 @@ public sealed class KnowledgeBaseTranspiler
             Algorithm: "SHA-256",
             ClaimCount: packageClaims.Count,
             DomainCount: domains.Count,
-            T1Count: packageClaims.Count(c => c.Tier == Tier.T1),
-            T2Count: packageClaims.Count(c => c.Tier == Tier.T2),
-            T3Count: packageClaims.Count(c => c.Tier == Tier.T3),
-            T4Count: packageClaims.Count(c => c.Tier == Tier.T4),
+            T1Count: pkgT1,
+            T2Count: pkgT2,
+            T3Count: pkgT3,
+            T4Count: pkgT4,
             CitationCount: citations.Count);
 
         var manifest = PackageManifest.CreateNew(book, fingerprint);

@@ -21,9 +21,30 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
 
     private readonly ExtractionVocabulary _vocabulary;
 
+    /// <summary>
+    /// Vocabulary-bound rules constructed once per <see cref="CkpExtractionValidator"/>
+    /// instance. The <c>StaleTierHistoryRule</c> is *not* cached here because it closes
+    /// over the package's book edition and therefore varies per <see cref="Validate"/>
+    /// call; that one is still constructed in <see cref="RunExtractionRules"/>.
+    /// </summary>
+    /// <remarks>
+    /// P5: pre-P5 the full five-rule array was allocated inside <c>RunExtractionRules</c>
+    /// on every <c>Validate</c> call. Callers that run validation in a tight loop (e.g.,
+    /// per-claim fuzz tests, batch pipelines) paid five allocations + five constructor
+    /// invocations per call for four entries that never change.
+    /// </remarks>
+    private readonly IExtractionRule[] _staticRules;
+
     public CkpExtractionValidator(ExtractionVocabulary? vocabulary = null)
     {
         _vocabulary = vocabulary ?? ExtractionVocabulary.Empty;
+        _staticRules =
+        [
+            new EpistemicTierMismatchRule(_vocabulary.HedgingMarkers),     // SEM1 + SEM6
+            new CompoundStatementRule(),                                   // SEM2
+            new UnknownDomainRule(_vocabulary.KnownDomains),               // SEM3
+            new MechanisticObservableRule(_vocabulary.MechanisticKeywords) // SEM4
+        ];
     }
 
     public CkpValidationReport Validate(
@@ -212,14 +233,7 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
         IReadOnlyDictionary<string, ExtractionPriority>? priorities,
         List<ClaimValidationDiagnostic> diagnostics)
     {
-        IExtractionRule[] rules =
-        [
-            new EpistemicTierMismatchRule(_vocabulary.HedgingMarkers),   // SEM1 + SEM6
-            new CompoundStatementRule(),                                 // SEM2
-            new UnknownDomainRule(_vocabulary.KnownDomains),             // SEM3
-            new MechanisticObservableRule(_vocabulary.MechanisticKeywords), // SEM4
-            new StaleTierHistoryRule(package.Manifest.Book.Edition)      // SEM5
-        ];
+        var staleTierRule = new StaleTierHistoryRule(package.Manifest.Book.Edition);
 
         foreach (var claim in package.Claims)
         {
@@ -227,10 +241,12 @@ public sealed class CkpExtractionValidator : ICkpExtractionValidator
             if (priorities is not null && priorities.TryGetValue(claim.Id, out var priority))
                 p = priority;
 
-            foreach (var rule in rules)
+            foreach (var rule in _staticRules)
             {
                 diagnostics.AddRange(rule.Validate(claim, p));
             }
+
+            diagnostics.AddRange(staleTierRule.Validate(claim, p));
         }
     }
 
