@@ -1,9 +1,14 @@
 # CKP Format Specification
 
-**Version:** 1.0  
-**Date:** 2026-04-10  
+**Version:** 1.1 (supersedes 1.0)  
+**Date:** 2026-04-22  
 **Status:** Living specification  
 **Reference implementation:** This repository (`Ckp.Core`, `Ckp.IO`, `Ckp.Signing`)
+
+> **Wire-format note.** The on-wire `manifest.formatVersion` value remains `"1.0"`.
+> Version 1.1 of *this document* reconciles the prose with the reference implementation
+> (content hash, determinism rules, error contract, enrichment emission rule) without
+> any breaking change to the archive layout. See the Changelog at the end.
 
 ---
 
@@ -69,15 +74,7 @@ A `.ckp` file is a standard ZIP archive with the following layout:
 book.ckp
 ├── manifest.json
 ├── claims/
-│   ├── claims.json
-│   ├── by-tier/
-│   │   ├── t1.json
-│   │   ├── t2.json
-│   │   ├── t3.json
-│   │   └── t4.json
-│   └── by-domain/
-│       ├── {domain-name}.json
-│       └── ...
+│   └── claims.json
 ├── evidence/
 │   ├── citations.json
 │   └── axiom-refs.json
@@ -87,8 +84,8 @@ book.ckp
 │   └── glossary.json
 ├── history/
 │   ├── editions.json
-│   └── tier-changes.json
-├── enrichment/                          (optional, written only when non-empty)
+│   └── tier-changes.json         (derived on write from claim tier history; ignored on read)
+├── enrichment/                   (optional, written only when non-empty)
 │   ├── mechanisms.json
 │   ├── phenomena.json
 │   └── commentary/
@@ -108,22 +105,56 @@ book.ckp
 |------|----------|
 | `manifest.json` | Book metadata, content fingerprint, Ed25519 signature, T0 registry reference, alignment summaries |
 | `claims/claims.json` | Flat array of all `PackageClaim` objects |
-| `claims/by-tier/t{N}.json` | Subset of claims at tier N (precomputed for fast lookup) |
-| `claims/by-domain/{name}.json` | Subset of claims in the named domain |
 | `evidence/citations.json` | All PMIDs/DOIs cited by claims, with metadata |
 | `evidence/axiom-refs.json` | T0 axiom references used as constraints by claims |
 | `structure/chapters.json` | Chapter index with claim counts and domains |
 | `structure/domains.json` | Domain taxonomy used by this book |
 | `structure/glossary.json` | Book terminology mapped to standard terms and cross-book equivalents |
 | `history/editions.json` | Edition metadata (date, editor, ISBN) |
-| `history/tier-changes.json` | All tier promotions/demotions across editions |
+| `history/tier-changes.json` | All tier promotions/demotions across editions. **Derived on write from `PackageClaim.TierHistory`; ignored on read** — the round-trip source of truth is the `tierHistory` array on each claim. |
+| `enrichment/mechanisms.json`, `enrichment/phenomena.json`, `enrichment/commentary/{publisher,community}.json` | See §15.5 / §15.6. |
 | `alignment/external/{key}.json` | Claim alignments to other books |
+
+> **Tier and domain views** (formerly `claims/by-tier/t{N}.json`, `claims/by-domain/{name}.json`)
+> are *not* written by the reference implementation. Consumers that want those views build
+> them in memory from `claims/claims.json` (grouping by `tier` or `domain`). Emitting them
+> would duplicate data already present in the canonical claims file and would require the
+> content hash in §10 to cover redundant bytes.
+
+### 3.2 Determinism
+
+A conformant writer MUST produce byte-identical output given byte-identical input. This
+matters for signing (§10), caching, and diffing. The reference implementation enforces the
+following rules; conformant implementations MUST match:
+
+- **Entry order.** ZIP entries are written in lexicographic (ordinal) order by full name.
+- **Entry timestamps.** All ZIP `LastWriteTime` values are pinned to `2000-01-01T00:00:00Z`.
+  The writer does not embed wall-clock time anywhere in the archive structure.
+- **JSON shape.** All JSON entries are serialized with `WriteIndented = false` (compact form)
+  and sort claims/citations/domains/chapters/editions/mechanisms/phenomena/commentary by a
+  documented stable key before emission. See `PackageEntrySerializer` in the reference
+  implementation for the per-collection sort order.
+- **Canonical JSON for signed bytes.** The manifest subset that the signature covers is
+  serialized in the RFC 8785 (JCS) canonical form: lexicographically sorted object keys,
+  no insignificant whitespace, minimal-length number encoding, UTF-8, `\uXXXX` escapes for
+  control characters. See `CkpCanonicalJson`. The manifest's `signature` object is
+  *excluded* from the bytes that get signed — you cannot sign the signature you are about
+  to write.
+- **Stable container encoding.** Archives use ZIP (PKZIP) with no multi-volume split and
+  no encryption. Compression level is not specified — the hash in §10 covers the
+  uncompressed entry bytes, so changing compression does not change the signature.
 
 ---
 
 ## 4. Manifest Schema
 
 The manifest is the root document of a CKP package. It identifies the book, summarizes the content, and carries the cryptographic signature.
+
+> **Canonical form.** Property order in the example below is illustrative only. The bytes
+> that the signature in §10.2 covers are derived from the RFC 8785 (JCS) canonical form,
+> which sorts object keys lexicographically and omits the `signature` object itself. A
+> conformant writer may emit the on-disk manifest in any key order; a conformant verifier
+> re-canonicalizes before checking the signature.
 
 ```json
 {
@@ -191,7 +222,7 @@ The manifest is the root document of a CKP package. It identifies the book, summ
 | `book.publisher` | string | Yes | Publisher name. |
 | `book.year` | int | Yes | Publication year. |
 | `book.isbn` | string | No | ISBN. |
-| `book.language` | string | No | BCP 47 language tag (e.g., `"en-US"`). |
+| `book.language` | string | Yes | BCP 47 language tag (e.g., `"en-US"`). Transpilers default to `"en"` when the source does not specify one; the field is always present on the wire. |
 | `book.domains` | string[] | Yes | Primary knowledge domains covered. |
 | `contentFingerprint` | object | Yes | Statistical summary of package contents. |
 | `t0Registry` | object | No | Reference to the T0 axiom registry version used. |
@@ -507,7 +538,19 @@ If a statement is modified and the hash is not updated, S2 fails and the package
 
 ### 10.2 Package signing (Ed25519)
 
-The manifest's `signature` block contains an Ed25519 signature over the package content. Signing is optional (draft packages may be unsigned), but signed packages carry higher trust.
+The manifest's `signature` block contains an Ed25519 signature over the **canonical
+manifest**, which transitively covers every entry in the archive via the content hash in
+§10.3. Signing is optional (draft packages may be unsigned), but signed packages carry
+higher trust.
+
+The signed bytes are produced by `CkpCanonicalJson.SerializeForSigning`: it takes the
+manifest, strips the `signature` object (one cannot sign the signature one is about to
+write), serializes the remainder in RFC 8785 (JCS) canonical form, and feeds those bytes
+to Ed25519. Because the canonical manifest contains `contentFingerprint.hash` (§10.3),
+any tampering with a non-manifest entry changes the recomputed content hash, disagrees
+with the stored hash, and — in strict-read mode — causes the reader to reject the
+package. Tampering with the manifest itself changes the canonical bytes directly and
+invalidates the signature.
 
 **Trust hierarchy:**
 
@@ -517,11 +560,44 @@ The manifest's `signature` block contains an Ed25519 signature over the package 
 | Author | Author Ed25519 key | Authoritative |
 | Scholar | Institution key + personal key | Reviewed |
 | Community | Personal key only | Contributory |
-| AI-assisted | Unsigned until human review | Draft |
+
+> Packages produced with AI assistance MUST be signed by the human or organization
+> taking responsibility for the claims — there is no separate "AI-assisted" signature
+> source, because the trust model cares about the accountable signer, not the drafting
+> tool. The `SignatureSource` enum in `Ckp.Core` has exactly the four values above.
+
+#### 10.2.1 Content hash (construction)
+
+The `contentFingerprint.hash` field binds every non-manifest entry into the signed scope.
+Algorithm:
+
+1. **Enumerate entries.** Take every entry the writer emits *except* `manifest.json`
+   (claims, evidence, structure, history, enrichment, alignments). These are the leaves.
+2. **Sort leaves** by their ordinal-UTF-8 full name (e.g., `alignment/external/gamma-2e.json`
+   before `claims/claims.json`). The sort is stable and independent of ZIP central-directory
+   order.
+3. **Hash each leaf** with SHA-256 over the *uncompressed* JSON bytes the writer would emit
+   for that entry. Compression settings do not change the hash.
+4. **Fold leaves into the root** with a single `IncrementalHash` (SHA-256) instance. For each
+   leaf in sorted order, append:
+   ```
+   name_utf8  ||  0x00  ||  leaf_hash_raw_32_bytes  ||  0x0A
+   ```
+   where `||` is concatenation, `0x00` is the name/hash separator (forbids the name `A` with
+   hash `H` from colliding with name `A\0H` with no hash), and `0x0A` is the inter-leaf
+   terminator.
+5. **Emit** the root as `"sha256:" + hex.ToLowerInvariant(root_hash_raw_32_bytes)` — the same
+   format as the per-claim hash defined in §10.1. Total length: 71 characters.
+
+The reference implementation lives in `src/Ckp.IO/Serialization/CkpContentHash.cs` and is
+invoked by both `CkpPackageWriter` (to inject the hash before the manifest is signed) and
+by the strict-read path (`CkpReadOptions.RequireContentHash`) to recompute and compare.
 
 ### 10.3 Content fingerprint
 
-The `contentFingerprint` in the manifest provides a statistical summary for quick integrity checks without reading every claim:
+The `contentFingerprint` in the manifest provides a statistical summary for quick
+integrity checks without reading every claim, plus the content hash defined in §10.2.1
+that binds the rest of the archive into the signed scope:
 
 | Field | Description |
 |-------|-------------|
@@ -533,8 +609,11 @@ The `contentFingerprint` in the manifest provides a statistical summary for quic
 | `t3Count` | Count of T3 claims |
 | `t4Count` | Count of T4 claims |
 | `citationCount` | Total citations across all claims |
+| `hash` | Content hash over every non-manifest entry, constructed per §10.2.1. Optional for backward compatibility with pre-1.1 packages; REQUIRED for any package that also carries a signature. |
 
 Validation rule SET5 verifies that the fingerprint counts match the actual package content.
+Strict-read mode (§16) additionally verifies that the recomputed `hash` equals the stored
+value.
 
 ---
 
@@ -611,7 +690,7 @@ A field package is produced by the Alignment Engine from one or more CKP 1.0 sou
   "sourcePackages": ["alpha-3e", "delta-14e", "gamma-2e"],
   "decayLambda": 0.058,
   "survivalAlpha": 0.1,
-  "turbulenceTauBase": 1.5,
+  "turbulenceTauBase": 0.7,
   "claims": [ ]
 }
 ```
@@ -624,7 +703,7 @@ A field package is produced by the Alignment Engine from one or more CKP 1.0 sou
 | `sourcePackages` | string[] | Book keys of all CKP 1.0 packages that contributed. |
 | `decayLambda` | double | The decay constant used during compilation. |
 | `survivalAlpha` | double | The survival bonus constant used during compilation. |
-| `turbulenceTauBase` | double | The turbulence detection threshold used. |
+| `turbulenceTauBase` | double | The τ_base turbulence detection threshold used. Default `0.7` as implemented in `TurbulenceDetector.DefaultTauBase`; a recompile with a different value MUST record it here so consumers can reproduce the turbulence verdicts. |
 | `claims` | CanonicalClaim[] | All canonical claims in this field package. |
 
 ### 12.3 Canonical claims
@@ -846,7 +925,7 @@ CKP 2.0 field packages use the `FieldPackage` schema, which is a distinct docume
 
 ### 15.5 Enrichment directory
 
-The `enrichment/` directory stores optional metadata that enhances claims without modifying them. All entries are written only when non-empty.
+The `enrichment/` directory stores optional metadata that enhances claims without modifying them.
 
 | File | Contents |
 |------|----------|
@@ -855,7 +934,79 @@ The `enrichment/` directory stores optional metadata that enhances claims withou
 | `enrichment/commentary/publisher.json` | Publisher annotations on claims |
 | `enrichment/commentary/community.json` | Community annotations on claims |
 
-Tools that do not understand enrichment data should ignore these entries.
+### 15.6 Enrichment emission rule
+
+A conformant writer MUST NOT emit an enrichment entry whose serialized payload would be
+an empty array. Specifically:
+
+- `enrichment/mechanisms.json` is emitted iff the package has at least one mechanism.
+- `enrichment/phenomena.json` is emitted iff the package has at least one phenomenon.
+- `enrichment/commentary/publisher.json` is emitted iff the package has at least one
+  publisher commentary entry.
+- `enrichment/commentary/community.json` is emitted iff the package has at least one
+  community commentary entry.
+
+A conformant reader MUST treat a missing enrichment entry as semantically equivalent to
+an empty collection — it is not a structural error. Readers that do not understand a
+given enrichment file MAY ignore it; forward-compatible implementations will preserve it
+byte-for-byte on round-trip.
+
+This rule exists so the content hash (§10.2.1) does not gain empty-array leaves that
+change nothing about the package's meaning. A package with no community commentary has
+neither the file nor a leaf for it in the hash.
+
+---
+
+## 16. Error Handling Contract
+
+A conformant reader signals every structural or integrity failure with a single
+exception type: `CkpFormatException` (see `src/Ckp.Core/CkpFormatException.cs`). The
+exception carries an optional `EntryName` so callers can surface the exact archive entry
+that failed. Non-structural failures — I/O errors reading the underlying stream,
+cancellation, invalid arguments — surface as the usual BCL exception types and are not
+wrapped.
+
+The table below lists every condition the reference implementation treats as a format
+error. Conformant implementations SHOULD raise the same exception for the same condition
+so consumers can map errors uniformly.
+
+### 16.1 Default-read errors (always enforced)
+
+| Condition | Exception | `EntryName` |
+|---|---|---|
+| Required entry (`manifest.json`, `claims/claims.json`) missing | `CkpFormatException` | missing entry |
+| Required entry deserializes to `null` | `CkpFormatException` | entry |
+| Required entry contains malformed JSON | `CkpFormatException` wrapping `JsonException` | entry |
+| `manifest.formatVersion` not in `CkpPackageReader.SupportedFormatVersions` (currently `{"1.0"}`) | `CkpFormatException` | `"manifest.json"` |
+| `alignment/external/…` entry name normalizes outside the `alignment/external/` prefix (path traversal) | Entry skipped; caller sees nothing suspicious at the domain layer | — |
+
+### 16.2 Strict-read errors (opt-in via `CkpReadOptions`)
+
+These only fire when the caller passes a non-default `CkpReadOptions` to the overload
+`ReadAsync(stream, options, ct)`. The default overload never raises them.
+
+| Option | Condition | Exception | Threat model ref |
+|---|---|---|---|
+| `RequireSignature = true` | Manifest has no signature | `CkpFormatException("…required a signature…")` | T-DOWNGRADE-UNSIGNED |
+| `ExpectedPublicKey != null` | Manifest signature's public key does not ordinal-equal the expected one | `CkpFormatException("…pinned a public key that does not match…")` | T-FORGE-KEY |
+| `RequireContentHash = true` | `ContentFingerprint.Hash` is null (pre-1.1 writer) | `CkpFormatException("…ContentFingerprint.Hash is null…")` | T-BYTE / T-ADD |
+| `RequireContentHash = true` | Recomputed content hash differs from stored | `CkpFormatException("…content-hash mismatch…")` | T-BYTE / T-ADD |
+| `VerifySignature = true` | Signature block present but crypto verification returns false | `CkpFormatException("…signature verification failed…")` | T-BYTE manifest / T-FORGE-KEY / T-DOWNGRADE-ALGORITHM |
+| `VerifySignature = true` with null `SignatureVerifier` delegate | (precondition) | `InvalidOperationException` | caller-configuration bug, not a format error |
+| `VerifySignature = true` on unsigned manifest | `CkpFormatException("…no signature…")` | caller should pair with `RequireSignature` |
+
+See `docs/Refactoring/SigningThreatModel.md` for the adversary capabilities each strict
+option defends against.
+
+### 16.3 Writer errors
+
+The writer raises `CkpFormatException` when its preconditions are violated:
+
+| Condition | `EntryName` |
+|---|---|
+| Caller-supplied `ContentFingerprint.Hash` disagrees with the hash recomputed from the serialized entries | `"manifest.json"` |
+
+Any other writer error surfaces as the originating exception (I/O, JSON serialization).
 
 ---
 
@@ -925,7 +1076,7 @@ Tools that do not understand enrichment data should ignore these entries.
 
 **PackageManifest:** `FormatVersion, PackageId, CreatedAt, Signature?, Book, ContentFingerprint, T0Registry?, Alignments[]`
 
-**ContentFingerprint:** `Algorithm, ClaimCount, DomainCount, T1Count, T2Count, T3Count, T4Count, CitationCount`
+**ContentFingerprint:** `Algorithm, ClaimCount, DomainCount, T1Count, T2Count, T3Count, T4Count, CitationCount, Hash?`
 
 **BookAlignment:** `SourceBook, TargetBook, Alignments[]`
 
@@ -950,3 +1101,46 @@ Tools that do not understand enrichment data should ignore these entries.
 **TurbulenceFlag:** `TriggeredByBookId, Direction, TierDelta, Note`
 
 **DivergentBranch:** `Position, Tier, Attestations[]`
+
+---
+
+## Changelog
+
+Spec revisions are documented here. The on-wire `manifest.formatVersion` is bumped only
+when a change would break existing readers; doc-only clarifications of existing
+behaviour ship under a new *spec* version without touching `formatVersion`.
+
+### 1.1 — 2026-04-22
+
+Reconciliation pass. No wire-format break; `manifest.formatVersion` stays `"1.0"`.
+
+- §3 Archive layout: removed `claims/by-tier/` and `claims/by-domain/` (never emitted by the
+  reference implementation). Added note that consumers build those views in memory.
+- §3.1 File descriptions: annotated `history/tier-changes.json` as "derived on write,
+  ignored on read"; added enrichment file row pointing to §15.5 / §15.6.
+- §3.2 Determinism: new subsection documenting lexicographic entry order, pinned
+  `2000-01-01` timestamps, compact/canonical JSON, and the RFC 8785 canonicalization
+  applied before signing.
+- §4 Manifest: added canonical-form note to the JSON example; marked `book.language` as
+  required (matches the transpiler default of `"en"`).
+- §10.2 Package signing: rewrote to describe the true scope — the signature covers the
+  canonical manifest, which transitively covers every other entry via the content hash.
+  Removed the "AI-assisted" row from the trust table (`SignatureSource` has exactly four
+  values).
+- §10.2.1 Content hash (construction): new subsection specifying the sorted-leaf
+  `name || 0x00 || leaf_hash || 0x0A` fold into a root SHA-256 produced as
+  `sha256:<hex>`. Matches `CkpContentHash`.
+- §10.3 Content fingerprint: added the `hash` field. Optional for backward-compat; required
+  whenever the manifest is signed.
+- §12.2 Field package example: corrected `turbulenceTauBase` from `1.5` to `0.7` to match
+  `TurbulenceDetector.DefaultTauBase`.
+- §15.6 Enrichment emission rule: new subsection stating writers omit empty enrichment
+  entries and readers tolerate their absence.
+- §16 Error handling contract: new section enumerating default-read and strict-read errors
+  (`CkpFormatException` cases) and cross-referencing `CkpReadOptions` + the signing threat
+  model.
+- Appendix A: updated `ContentFingerprint` record signature to include `Hash?`.
+
+### 1.0 — 2026-04-10
+
+Initial publication.
