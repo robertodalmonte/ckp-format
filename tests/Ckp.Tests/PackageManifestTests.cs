@@ -65,6 +65,27 @@ public sealed class PackageManifestTests
     }
 
     [Fact]
+    public void CreateNew_uses_injected_TimeProvider_and_idFactory()
+    {
+        // A5 — the clock and id generator are both injectable so tests can produce
+        // byte-identical manifests without post-construction surgery.
+        var book = CreateTestBookMetadata();
+        var fingerprint = CreateTestFingerprint();
+        var fixedInstant = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var fixedTime = new FixedTimeProvider(fixedInstant);
+        var fixedId = Guid.Parse("01932000-0000-7000-8000-000000000001");
+
+        var a = PackageManifest.CreateNew(book, fingerprint,
+            timeProvider: fixedTime, idFactory: () => fixedId);
+        var b = PackageManifest.CreateNew(book, fingerprint,
+            timeProvider: fixedTime, idFactory: () => fixedId);
+
+        a.CreatedAt.Should().Be(fixedInstant);
+        a.PackageId.Should().Be(fixedId);
+        b.Should().Be(a, "injected factories make CreateNew deterministic");
+    }
+
+    [Fact]
     public void ContentFingerprint_tier_counts_are_preserved()
     {
         var fp = new ContentFingerprint("SHA-256", 100, 5, 40, 30, 20, 10, 500);
@@ -97,4 +118,14 @@ public sealed class PackageManifestTests
         T3Count: 10,
         T4Count: 5,
         CitationCount: 200);
+
+    /// <summary>
+    /// Minimal deterministic <see cref="TimeProvider"/> that always returns a fixed UTC
+    /// instant. Avoids a dependency on Microsoft.Extensions.TimeProvider.Testing just to
+    /// pin one timestamp in a single test.
+    /// </summary>
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
 }

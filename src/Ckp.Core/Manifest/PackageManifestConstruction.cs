@@ -9,15 +9,25 @@ public static class PackageManifestConstruction
     {
         /// <summary>
         /// Creates a new unsigned manifest with a freshly generated UUID and current timestamp.
+        /// <para>
+        /// A5 — both non-determinism sources are injectable: pass a fake
+        /// <see cref="TimeProvider"/> and <paramref name="idFactory"/> to pin the
+        /// <see cref="PackageManifest.CreatedAt"/> and <see cref="PackageManifest.PackageId"/>
+        /// fields. Defaults are <see cref="TimeProvider.System"/> and
+        /// <see cref="Guid.CreateVersion7()"/>, matching the pre-A5 behaviour exactly so
+        /// existing callers compile and behave unchanged.
+        /// </para>
         /// </summary>
         public static PackageManifest CreateNew(
             BookMetadata book,
             ContentFingerprint fingerprint,
             T0RegistryReference? t0Registry = null,
-            IReadOnlyList<AlignmentSummary>? alignments = null) => new(
+            IReadOnlyList<AlignmentSummary>? alignments = null,
+            TimeProvider? timeProvider = null,
+            Func<Guid>? idFactory = null) => new(
                 FormatVersion: "1.0",
-                PackageId: Guid.CreateVersion7(),
-                CreatedAt: DateTimeOffset.UtcNow,
+                PackageId: (idFactory ?? Guid.CreateVersion7)(),
+                CreatedAt: (timeProvider ?? TimeProvider.System).GetUtcNow(),
                 Signature: null,
                 Book: book,
                 ContentFingerprint: fingerprint,
