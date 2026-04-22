@@ -46,3 +46,4 @@ Desktop.ini
 ## Test results
 TestResults/
 coverage/
+BenchmarkDotNet.Artifacts/
