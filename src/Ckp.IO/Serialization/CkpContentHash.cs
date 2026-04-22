@@ -37,6 +37,13 @@ using System.Text;
 /// The manifest itself is excluded: it contains this very hash, so including it would be
 /// self-referential. The manifest is instead protected by the Ed25519 signature.
 /// </para>
+/// <para>
+/// P2: <see cref="ComputeForPackageAsync"/> uses the streaming
+/// <see cref="PackageEntrySerializer.PlanEntries"/> path and reuses a single pooled
+/// <see cref="MemoryStream"/> across entries. Previously the full set of non-manifest
+/// entry byte arrays was materialized into a <c>List&lt;(string, byte[])&gt;</c> before
+/// hashing — peak memory at 10k claims held every serialized entry in the heap at once.
+/// </para>
 /// </remarks>
 public static class CkpContentHash
 {
@@ -48,13 +55,9 @@ public static class CkpContentHash
     public const string Prefix = "sha256:";
 
     /// <summary>
-    /// Computes the content hash for a sequence of non-manifest ZIP entries. The input does
-    /// not need to be pre-sorted — this method sorts ordinally before hashing so callers
-    /// cannot accidentally produce a different digest by changing enumeration order.
-    /// </summary>
-    /// <summary>
-    /// Computes the content hash for a <see cref="CkpPackage"/> by serializing every
-    /// non-manifest entry through the exact same path the writer uses, then folding.
+    /// Computes the content hash for a <see cref="CkpPackage"/> by walking the writer's
+    /// entry plan, serializing each entry into a reusable scratch buffer, folding the
+    /// leaf, and releasing — O(1) retained buffers independent of claim count.
     /// Use this to pre-compute the hash before signing so the signature covers the
     /// final manifest bytes (see "hash-then-sign" workflow on <see cref="CkpPackageWriter"/>).
     /// </summary>
@@ -62,10 +65,70 @@ public static class CkpContentHash
         CkpPackage package, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(package);
-        var entries = await PackageEntrySerializer.SerializeAsync(package, cancellationToken);
-        return Compute(entries);
+        var plan = PackageEntrySerializer.PlanEntries(package);
+        return await ComputeForPlanAsync(plan, cancellationToken);
     }
 
+    /// <summary>
+    /// Computes the content hash for a pre-built entry plan. Internal helper shared
+    /// between <see cref="ComputeForPackageAsync"/> and <see cref="CkpPackageWriter"/>
+    /// so both agree byte-for-byte on what was hashed vs. what ended up in the archive.
+    /// </summary>
+    internal static async Task<string> ComputeForPlanAsync(
+        IReadOnlyList<PackageEntryPlan> plan, CancellationToken cancellationToken)
+    {
+        // Plan is already ordinally sorted by PackageEntrySerializer.PlanEntries.
+        using var root = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        using var scratch = new MemoryStream();
+        // Stack-allocated Span<byte> cannot cross an await boundary, so this method
+        // allocates two small heap buffers up front and reuses them across entries.
+        // One pair per Compute call, independent of entry count.
+        byte[] leafBuffer = new byte[32];
+        byte[] separator = [0x00];
+        byte[] terminator = [0x0A];
+
+        foreach (var entry in plan)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Reuse the same backing buffer across entries. SetLength(0) zeroes the
+            // logical length but keeps the internal array — repeated writes reuse it.
+            scratch.SetLength(0);
+            scratch.Position = 0;
+            await entry.WriteToAsync(scratch, cancellationToken);
+
+            if (!scratch.TryGetBuffer(out var segment))
+                throw new InvalidOperationException("Scratch MemoryStream refused to expose its buffer.");
+
+            if (!SHA256.TryHashData(segment.AsSpan(), leafBuffer, out var written) || written != 32)
+                throw new InvalidOperationException("SHA-256 leaf hash produced unexpected length.");
+
+            byte[] nameBytes = Encoding.UTF8.GetBytes(entry.Name);
+            root.AppendData(nameBytes);
+            root.AppendData(separator);
+            root.AppendData(leafBuffer);
+            root.AppendData(terminator);
+        }
+
+        byte[] rootBuffer = new byte[32];
+        if (!root.TryGetHashAndReset(rootBuffer, out var rootWritten) || rootWritten != 32)
+            throw new InvalidOperationException("SHA-256 root hash produced unexpected length.");
+
+        return Prefix + Convert.ToHexStringLower(rootBuffer);
+    }
+
+    /// <summary>
+    /// Computes the content hash for a sequence of non-manifest ZIP entries supplied as
+    /// pre-materialized byte arrays. The input does not need to be pre-sorted — this
+    /// method sorts ordinally before hashing so callers cannot accidentally produce a
+    /// different digest by changing enumeration order.
+    /// </summary>
+    /// <remarks>
+    /// Preserved as a public API for callers that already hold entry bytes (e.g., test
+    /// fixtures verifying hash stability against known byte sequences). The plan-based
+    /// overload used by <see cref="CkpPackageWriter"/> produces identical digests from
+    /// equivalent inputs — verified by the round-trip tests in <c>CkpContentHashTests</c>.
+    /// </remarks>
     public static string Compute(IEnumerable<(string Name, byte[] Bytes)> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);

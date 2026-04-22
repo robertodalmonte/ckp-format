@@ -34,6 +34,16 @@ using Ckp.Core;
 ///     hash would silently corrupt downstream verification.
 ///   </item>
 /// </list>
+/// <para>
+/// P2: each non-manifest entry is serialized straight into the ZIP entry stream via
+/// <c>JsonSerializer.SerializeAsync</c> — no intermediate <c>byte[]</c> buffer. The
+/// content hash is computed in a separate first pass using a single reusable scratch
+/// buffer (see <see cref="CkpContentHash.ComputeForPlanAsync"/>). Peak write-time heap
+/// allocation is now one entry's serialized bytes at a time rather than the whole
+/// package. The manifest is still buffered (it's canonicalized via
+/// <see cref="CkpCanonicalJson"/>) because it has to land at its own sorted position
+/// in the archive only after the hash pass completes.
+/// </para>
 /// </summary>
 public sealed class CkpPackageWriter : ICkpPackageWriter
 {
@@ -44,34 +54,53 @@ public sealed class CkpPackageWriter : ICkpPackageWriter
     internal static readonly DateTimeOffset DeterministicEpoch =
         new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
+    private const string ManifestEntryName = "manifest.json";
+
     public async Task WriteAsync(CkpPackage package, Stream stream, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(package);
         ArgumentNullException.ThrowIfNull(stream);
 
-        var nonManifestEntries = await PackageEntrySerializer.SerializeAsync(package, cancellationToken);
-        var computedHash = CkpContentHash.Compute(nonManifestEntries);
+        // Build the entry plan once; walk it twice (hash pass, write pass). Both passes
+        // serialize from the same closures against the same pre-sorted input lists, so
+        // the hashed bytes are provably the bytes that end up in the archive.
+        var plan = PackageEntrySerializer.PlanEntries(package);
 
+        var computedHash = await CkpContentHash.ComputeForPlanAsync(plan, cancellationToken);
         var manifest = ReconcileManifestHash(package.Manifest, computedHash);
         var manifestBytes = CkpCanonicalJson.Serialize(manifest);
 
         using var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
 
-        // Collect every entry including the manifest and emit in sorted order so the ZIP
-        // central directory is stable.
-        var allEntries = new List<(string Name, byte[] Bytes)>(nonManifestEntries.Count + 1)
+        // Merge the manifest into its sorted position without rebuilding the plan list.
+        // The plan is already ordinal-sorted; we just scan for the first entry whose
+        // name sorts after "manifest.json" and splice the manifest in there.
+        bool manifestWritten = false;
+        foreach (var entry in plan)
         {
-            ("manifest.json", manifestBytes),
-        };
-        allEntries.AddRange(nonManifestEntries);
+            if (!manifestWritten && StringComparer.Ordinal.Compare(ManifestEntryName, entry.Name) < 0)
+            {
+                await EmitManifestAsync(archive, manifestBytes, cancellationToken);
+                manifestWritten = true;
+            }
 
-        foreach (var (name, bytes) in allEntries.OrderBy(e => e.Name, StringComparer.Ordinal))
-        {
-            var zipEntry = archive.CreateEntry(name, CompressionLevel.Optimal);
+            var zipEntry = archive.CreateEntry(entry.Name, CompressionLevel.Optimal);
             zipEntry.LastWriteTime = DeterministicEpoch;
             await using var entryStream = zipEntry.Open();
-            await entryStream.WriteAsync(bytes, cancellationToken);
+            await entry.WriteToAsync(entryStream, cancellationToken);
         }
+
+        if (!manifestWritten)
+            await EmitManifestAsync(archive, manifestBytes, cancellationToken);
+    }
+
+    private static async Task EmitManifestAsync(
+        ZipArchive archive, byte[] manifestBytes, CancellationToken cancellationToken)
+    {
+        var zipEntry = archive.CreateEntry(ManifestEntryName, CompressionLevel.Optimal);
+        zipEntry.LastWriteTime = DeterministicEpoch;
+        await using var entryStream = zipEntry.Open();
+        await entryStream.WriteAsync(manifestBytes, cancellationToken);
     }
 
     private static PackageManifest ReconcileManifestHash(PackageManifest manifest, string computedHash)
