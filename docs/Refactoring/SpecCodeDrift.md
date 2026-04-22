@@ -37,7 +37,7 @@ the spec, `both` = change both, `doc` = just add a clarifying line somewhere.
 | **D9** | **§10.2 says "Ed25519 signature over the package content"** | Claims whole-content coverage | **Signs manifest only** — `claims/claims.json`, `evidence/*`, `structure/*`, `alignment/external/*`, `enrichment/*`, `history/*` are NOT in the signed scope | code + spec — add a `packageContentHash` in the manifest (covered by the existing signature) AND rewrite §10.2 | S1 + X5 |
 | D10 | Signature `algorithm` field | Table includes "Ed25519" | ~~Hardcoded to Ed25519 regardless of what the manifest says (downgrade/confusion risk)~~ ✅ closed by T7+S2+S5 — `CkpSigner.Verify` now rejects any Algorithm != "Ed25519" (ordinal, case-insensitive). | code — verify `signature.Algorithm == "Ed25519"` (ordinal) before calling NSec | S2 |
 | D11 | "AI-assisted" trust-tier row in §10.2 table | Present | `SignatureSource` enum has no matching value | spec — remove row (recommended) OR code — add enum value | X10 |
-| D12 | `formatVersion` support gate | §15.4: "readers should reject unsupported versions" | `CkpPackageReader` accepts any string | code — reject versions outside `{"1.0"}` | T3 |
+| D12 | `formatVersion` support gate | §15.4: "readers should reject unsupported versions" | ~~`CkpPackageReader` accepts any string~~ ✅ closed by T3 — reader rejects versions outside `CkpPackageReader.SupportedFormatVersions = {"1.0"}`. | code — reject versions outside `{"1.0"}` | T3 |
 
 ## 4. Field packages (spec §12 vs. `FieldPackage` / `TurbulenceDetector`)
 
@@ -56,7 +56,7 @@ the spec, `both` = change both, `doc` = just add a clarifying line somewhere.
 | # | Drift | In spec? | In code? | Resolution | Plan item |
 |---|---|---|---|---|---|
 | D15 | Exception types raised by conformant readers | Silent | Mixed `InvalidOperationException` / `JsonException` / wrapper | spec — add §16 "Error handling contract"; code — align reader to it | X8 + T3 |
-| D16 | Alignment-path traversal guard (`alignment/external/../../evil.json`) | Silent | **No normalization** — filter is `StartsWith("alignment/external/") && EndsWith(".json")`, which a crafted `..` segment bypasses | code — normalize and reject escaping paths; spec — note the guard | T3 |
+| D16 | Alignment-path traversal guard (`alignment/external/../../evil.json`) | Silent | ~~**No normalization**~~ ✅ closed by T3 — `CkpPackageReader.IsAlignmentEntry` normalizes `..`/`.` segments and rejects entries that escape `alignment/external/`. | code — normalize and reject escaping paths; spec — note the guard | T3 |
 
 ## 7. Non-drift (spec and code agree)
 

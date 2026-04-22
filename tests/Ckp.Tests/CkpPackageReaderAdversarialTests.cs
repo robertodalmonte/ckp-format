@@ -62,36 +62,37 @@ public sealed class CkpPackageReaderAdversarialTests
 
         var act = async () => await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should().ThrowAsync<CkpFormatException>()
             .WithMessage("*manifest.json*");
     }
 
-    // Item 4 — alignment/external/ path traversal. T3 will reject such entries.
-    [Fact(Skip = "Awaiting T3 — reader must normalize alignment paths and reject entries escaping alignment/external/.")]
-    public async Task Read_rejects_alignment_path_traversal()
-    {
-        var bytes = MalformedZipBuilder.Default().WithTraversalAlignment().Build();
-        using var stream = new MemoryStream(bytes);
-
-        var act = async () => await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
-
-        // T3 target behaviour: throw a CkpFormatException (or at minimum, do not silently hydrate).
-        await act.Should().ThrowAsync<Exception>();
-    }
-
-    // Item 4b — documents current (insecure) behaviour so the T3 flip is visible in diff.
+    // Item 4 — alignment/external/ path traversal. T3 landed: entries that normalize
+    // above the alignment/external/ root are silently dropped by the IsAlignmentEntry guard.
     [Fact]
-    public async Task Read_currently_includes_traversal_alignment_without_normalization()
+    public async Task Read_rejects_alignment_path_traversal()
     {
         var bytes = MalformedZipBuilder.Default().WithTraversalAlignment().Build();
         using var stream = new MemoryStream(bytes);
 
         var package = await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
 
-        // Today the StartsWith/EndsWith filter lets this through. When T3 lands this test
-        // should be flipped to assert the read throws; the skipped "rejects" test takes over.
-        package.Alignments.Should().ContainSingle()
-            .Which.TargetBook.Should().Be("evil-2e");
+        // The traversal entry is filtered out rather than throwing — it is not a "required"
+        // entry so the benign response is to ignore it. No alignment is hydrated.
+        package.Alignments.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("alignment/external/other.json", true)]
+    [InlineData("alignment/external/../../evil.json", false)]
+    [InlineData("alignment/external/nested/sub.json", true)] // deeper but still under prefix
+    [InlineData("alignment/external/../external/other.json", true)] // normalizes back in
+    [InlineData("alignment/external/../../../etc/passwd.json", false)]
+    [InlineData("alignment/external/", false)] // the directory itself, no filename
+    [InlineData("alignment/external/x.txt", false)] // wrong extension
+    [InlineData("alignment/other/x.json", false)] // wrong prefix
+    public void IsAlignmentEntry_normalizes_and_rejects_escapes(string fullName, bool expected)
+    {
+        CkpPackageReader.IsAlignmentEntry(fullName).Should().Be(expected);
     }
 
     // Item 5 — duplicate manifest.json entries. .NET ZipArchive.GetEntry returns the first.
@@ -133,7 +134,7 @@ public sealed class CkpPackageReaderAdversarialTests
 
     // Item 7 — corrupt JSON in the required manifest entry.
     [Fact]
-    public async Task Read_throws_JsonException_on_corrupt_manifest_json()
+    public async Task Read_wraps_corrupt_manifest_json_in_CkpFormatException()
     {
         var builder = new MalformedZipBuilder();
         builder.AddManifest(valid: false);
@@ -141,36 +142,31 @@ public sealed class CkpPackageReaderAdversarialTests
 
         var act = async () => await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
 
-        // Today: raw JsonException from System.Text.Json leaks through.
-        // T3 target: a CkpFormatException naming "manifest.json" wraps it. Update this
-        // assertion when T3 lands.
-        await act.Should().ThrowAsync<JsonException>();
+        var ex = (await act.Should().ThrowAsync<CkpFormatException>()).Which;
+        ex.EntryName.Should().Be("manifest.json");
+        ex.InnerException.Should().BeOfType<JsonException>();
     }
 
-    // Item 8 — unknown formatVersion. T3 will reject.
-    [Fact(Skip = "Awaiting T3 — reader must reject formatVersion outside the supported set {\"1.0\"}.")]
-    public async Task Read_rejects_unknown_format_version()
-    {
-        var bytes = MalformedZipBuilder.Default().AddManifest(formatVersionOverride: "2.0").Build();
-        using var stream = new MemoryStream(bytes);
-
-        var act = async () => await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
-
-        await act.Should().ThrowAsync<Exception>();
-    }
-
-    // Item 8b — documents current (permissive) behaviour.
+    // Item 8 — unknown formatVersion is rejected per spec §15.4.
     [Fact]
-    public async Task Read_currently_accepts_unknown_format_version()
+    public async Task Read_rejects_unknown_format_version()
     {
         // AddManifest appends a second manifest entry. Use a fresh builder to avoid duplicates.
         var builder = new MalformedZipBuilder();
         builder.AddManifest(formatVersionOverride: "2.0");
         using var stream = new MemoryStream(builder.Build());
 
-        var package = await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
+        var act = async () => await _reader.ReadAsync(stream, TestContext.Current.CancellationToken);
 
-        package.Manifest.FormatVersion.Should().Be("2.0");
+        var ex = (await act.Should().ThrowAsync<CkpFormatException>()).Which;
+        ex.EntryName.Should().Be("manifest.json");
+        ex.Message.Should().Contain("2.0").And.Contain("1.0");
+    }
+
+    [Fact]
+    public void Supported_format_versions_contains_1_0()
+    {
+        CkpPackageReader.SupportedFormatVersions.Should().Contain("1.0");
     }
 
     // Item 9 — unknown top-level entries are silently ignored.
