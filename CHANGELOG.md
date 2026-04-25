@@ -11,6 +11,16 @@ stamped `1.1` (documentation alignment, no wire break).
 Quality-raising pass — reads as four phases inside a single pre-release cycle.
 No wire-format break; `formatVersion` stays `"1.0"`.
 
+### Post-tail — redundant-entry cleanup (2026-04-25)
+
+- **X2b** Removed `history/tier-changes.json` from the writer. Spec bumped to 1.2;
+  `formatVersion` stays `"1.0"`. The entry was always derived from
+  `PackageClaim.TierHistory` and always ignored on read, so it added bytes to the
+  ZIP and an extra leaf to the content hash without serving the canonical data
+  model. Old packages that contain the entry remain readable — readers ignore it
+  as before. Tools that want a flat tier-change view should derive it on the
+  consumer side (e.g. a future `ckp diff` CLI).
+
 ### Tail — P2/P3 closure (2026-04-22)
 
 - **B4** Public-API snapshot: `api/Ckp.Core.txt`, `api/Ckp.IO.txt`,

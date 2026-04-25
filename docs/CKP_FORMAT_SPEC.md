@@ -1,14 +1,17 @@
 # CKP Format Specification
 
-**Version:** 1.1 (supersedes 1.0)  
-**Date:** 2026-04-22  
+**Version:** 1.2 (supersedes 1.1)  
+**Date:** 2026-04-25  
 **Status:** Living specification  
 **Reference implementation:** This repository (`Ckp.Core`, `Ckp.IO`, `Ckp.Signing`)
 
 > **Wire-format note.** The on-wire `manifest.formatVersion` value remains `"1.0"`.
-> Version 1.1 of *this document* reconciles the prose with the reference implementation
-> (content hash, determinism rules, error contract, enrichment emission rule) without
-> any breaking change to the archive layout. See the Changelog at the end.
+> Version 1.2 drops the redundant `history/tier-changes.json` entry from the writer.
+> The data was already redundant with `PackageClaim.TierHistory` and was ignored on
+> read. Old packages that still contain the entry remain readable. Version 1.1
+> reconciled the prose with the reference implementation (content hash, determinism
+> rules, error contract, enrichment emission rule) without any breaking change to
+> the archive layout. See the Changelog at the end.
 
 ---
 
@@ -83,8 +86,7 @@ book.ckp
 │   ├── domains.json
 │   └── glossary.json
 ├── history/
-│   ├── editions.json
-│   └── tier-changes.json         (derived on write from claim tier history; ignored on read)
+│   └── editions.json
 ├── enrichment/                   (optional, written only when non-empty)
 │   ├── mechanisms.json
 │   ├── phenomena.json
@@ -111,7 +113,6 @@ book.ckp
 | `structure/domains.json` | Domain taxonomy used by this book |
 | `structure/glossary.json` | Book terminology mapped to standard terms and cross-book equivalents |
 | `history/editions.json` | Edition metadata (date, editor, ISBN) |
-| `history/tier-changes.json` | All tier promotions/demotions across editions. **Derived on write from `PackageClaim.TierHistory`; ignored on read** — the round-trip source of truth is the `tierHistory` array on each claim. |
 | `enrichment/mechanisms.json`, `enrichment/phenomena.json`, `enrichment/commentary/{publisher,community}.json` | See §15.5 / §15.6. |
 | `alignment/external/{key}.json` | Claim alignments to other books |
 
@@ -1109,6 +1110,17 @@ Any other writer error surfaces as the originating exception (I/O, JSON serializ
 Spec revisions are documented here. The on-wire `manifest.formatVersion` is bumped only
 when a change would break existing readers; doc-only clarifications of existing
 behaviour ship under a new *spec* version without touching `formatVersion`.
+
+### 1.2 — 2026-04-25
+
+Removed redundant entry. No wire-format break; `manifest.formatVersion` stays `"1.0"`.
+
+- §3 Archive layout / §3.1 File descriptions: removed `history/tier-changes.json`.
+  The data was redundant with `PackageClaim.TierHistory` (the canonical source of
+  truth) and was always ignored on read. Conformant writers MUST NOT emit it.
+  Conformant readers continue to ignore the entry if present in legacy packages.
+  Tools that want a flat tier-change view should derive it on the consumer side
+  (e.g. a future `ckp diff` CLI).
 
 ### 1.1 — 2026-04-22
 
