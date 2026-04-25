@@ -10,9 +10,7 @@ A `.ckp` file is a standard ZIP archive. You can inspect it with any ZIP tool:
 sample-biomechanics.ckp
 ├── manifest.json
 ├── claims/
-│   ├── claims.json                     (5 claims)
-│   ├── by-tier/t1.json ... t4.json     (precomputed tier slices)
-│   └── by-domain/*.json                (precomputed domain slices)
+│   └── claims.json                     (5 claims; consumers derive tier/domain views in memory)
 ├── evidence/
 │   ├── citations.json                  (4 citations)
 │   └── axiom-refs.json
@@ -21,9 +19,12 @@ sample-biomechanics.ckp
 │   ├── domains.json                    (4 domains)
 │   └── glossary.json                   (1 entry)
 └── history/
-    ├── editions.json
-    └── tier-changes.json
+    └── editions.json
 ```
+
+> Per spec 1.2 the writer no longer emits `history/tier-changes.json`. The
+> canonical tier-evolution record lives inline on each claim as `tierHistory`
+> (see §6.4 of the format spec).
 
 ## Manifest
 

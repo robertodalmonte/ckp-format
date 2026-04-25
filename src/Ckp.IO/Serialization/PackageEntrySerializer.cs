@@ -66,11 +66,10 @@ internal static class PackageEntrySerializer
             .ThenBy(c => c.Author, StringComparer.Ordinal)
             .ToList();
 
-        var tierChanges = claims
-            .Where(c => c.TierHistory.Count > 0)
-            .Select(c => new { claimId = c.Id, history = c.TierHistory })
-            .ToList();
-
+        // history/tier-changes.json was removed in spec 1.2 — the data is redundant with
+        // PackageClaim.TierHistory (the canonical source of truth) and was never read back
+        // by the reference implementation. Tools that want a flat tier-change view should
+        // derive it on the consumer side.
         var entries = new List<PackageEntryPlan>
         {
             new("claims/claims.json", (s, ct) => JsonSerializer.SerializeAsync(s, claims, options, ct)),
@@ -80,7 +79,6 @@ internal static class PackageEntrySerializer
             new("structure/domains.json", (s, ct) => JsonSerializer.SerializeAsync(s, domains, options, ct)),
             new("structure/glossary.json", (s, ct) => JsonSerializer.SerializeAsync(s, glossary, options, ct)),
             new("history/editions.json", (s, ct) => JsonSerializer.SerializeAsync(s, editions, options, ct)),
-            new("history/tier-changes.json", (s, ct) => JsonSerializer.SerializeAsync(s, tierChanges, options, ct)),
         };
 
         if (mechanisms.Count > 0)

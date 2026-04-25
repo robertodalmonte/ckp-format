@@ -18,7 +18,7 @@ the spec, `both` = change both, `doc` = just add a clarifying line somewhere.
 |---|---|---|---|---|---|
 | D1 | `claims/by-tier/t{1..4}.json` views | ~~Listed~~ ✅ closed by X1 — removed from §3 tree and §3.1 table; note added that consumers build the views in memory | **Not emitted, not read** | spec — delete from §3; add a note that readers may build these in memory | X1 |
 | D2 | `claims/by-domain/{name}.json` views | ~~Listed~~ ✅ closed by X1 | **Not emitted, not read** | spec — delete from §3 | X1 |
-| D3 | `history/tier-changes.json` | ~~Listed~~ ✅ closed by X2 — §3.1 row now says "derived on write, ignored on read" | **Emitted on write; ignored on read** (data is redundant with `PackageClaim.TierHistory`) | spec — add "derived on write, ignored on read" note | X2 |
+| D3 | `history/tier-changes.json` | ~~Listed~~ ✅ re-closed by X2b (spec 1.2, 2026-04-25) — entry removed from §3 tree and §3.1 table; writer no longer emits it | **No longer emitted; readers still tolerate it in legacy packages** (data was redundant with `PackageClaim.TierHistory`) | code + spec — drop the entry; tier-history view derived on consumer side | X2b |
 | D4 | `enrichment/commentary/{publisher,community}.json` | ~~Silent~~ ✅ closed by X9 — new §15.6 formalizes the emission rule | Emitted when non-empty, read on round-trip | spec — add §15.6 "emit only when non-empty" rule | X9 |
 | D5 | Determinism guarantees (entry order, pinned LastWriteTime 2000-01-01, canonical manifest JSON) | ~~Silent~~ ✅ closed by X7 — new §3.2 "Determinism" subsection | Enforced | spec — add §3.2 "Determinism" subsection | X7 |
 
