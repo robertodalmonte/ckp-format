@@ -996,8 +996,10 @@ These only fire when the caller passes a non-default `CkpReadOptions` to the ove
 | `VerifySignature = true` with null `SignatureVerifier` delegate | (precondition) | `InvalidOperationException` | caller-configuration bug, not a format error |
 | `VerifySignature = true` on unsigned manifest | `CkpFormatException("…no signature…")` | caller should pair with `RequireSignature` |
 
-See `docs/Refactoring/SigningThreatModel.md` for the adversary capabilities each strict
-option defends against.
+The threat-model rationale for each strict option is summarized inline by the
+`T-…` codes in the rightmost column above (T-BYTE = byte tampering, T-ADD =
+appended/inserted entries, T-FORGE-KEY = forged signing key,
+T-DOWNGRADE-ALGORITHM = signature-algorithm downgrade).
 
 ### 16.3 Writer errors
 

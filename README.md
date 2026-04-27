@@ -61,13 +61,12 @@ src/
 └── Ckp.Benchmarks/     -- BenchmarkDotNet harness (not in shipping solution)
 tests/
 └── Ckp.Tests/          -- 305 tests (see "Testing" below)
-docs/                   -- Format spec, architecture, refactoring plan
+docs/                   -- Format spec
 examples/               -- Sample .ckp packages
 ```
 
-See [`docs/Architecture.md`](docs/Architecture.md) for the layering invariant
-(Core → IO → Signing/Transpiler/Epub → CLIs) and the closed set of allowed
-`ProjectReference` edges.
+The library is layered Core → IO → Signing/Transpiler/Epub → CLIs, with a
+closed set of allowed `ProjectReference` edges enforced by the build.
 
 ## Tools
 
@@ -166,9 +165,8 @@ with:
 Tampering is caught by two overlapping mechanisms: the Ed25519 signature over
 the manifest (which includes `contentFingerprint` and the package-level content
 hash), and the sorted-leaf SHA-256 content hash folded over every
-non-manifest ZIP entry. See
-[`docs/Refactoring/SigningThreatModel.md`](docs/Refactoring/SigningThreatModel.md)
-for the threat model.
+non-manifest ZIP entry. See [`docs/CKP_FORMAT_SPEC.md`](docs/CKP_FORMAT_SPEC.md)
+§10 (integrity) for the on-the-wire details.
 
 ## Testing
 
@@ -191,11 +189,6 @@ and count assertions are pinned to it; a surprise edit will cascade into dozens
 of red tests and silently invalidate the byte-determinism guarantee. If you
 need to test a new scenario, add a new fixture folder alongside MiniKb or
 construct the package programmatically in the test.
-
-For performance and coverage baselines see
-[`docs/Refactoring/performance-baseline.md`](docs/Refactoring/performance-baseline.md)
-and
-[`docs/Refactoring/coverage-baseline.md`](docs/Refactoring/coverage-baseline.md).
 
 ### Public-API snapshot
 
